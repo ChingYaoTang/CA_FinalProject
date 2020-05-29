@@ -4,7 +4,6 @@
 #include <cstring>
 #include <math.h>
 #define PI acos(-1)
-#include "add.h"
 #include "init_sin.h"
 
 //	Set the basic parameters
@@ -33,13 +32,6 @@ int  main( int argc, char *argv[] ){
 	free(analytic);
 	free(potential);
 	free(density);
-
-
-	int a = 3;
-	int b = 4;
-	int c;
-	c = add(a,b);
-	printf("%d\n",c);
 
 	return 0;
 }
