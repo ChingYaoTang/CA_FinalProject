@@ -2,15 +2,12 @@
 #include <cstdlib>
 #include <cstring>
 #include <math.h>
+#include "basic.h"
 #define PI acos(-1)
 extern const float L;
 extern float dx, bc;
 extern const int N;
 extern double *analytic,*potential,*density;
-
-int ind(int i,int j){
-	return i*N+j;
-}
 
 int smoothing(int n){
 	for( int k=0;k<n;k++ ){
