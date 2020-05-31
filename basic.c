@@ -8,9 +8,10 @@ extern float dx, bc;
 extern const int N;
 extern double *analytic,*potential,*density;
 
-int ind(int i,int j){
-	return i*N+j;
+int ind( int i,int j, int NGrid ) {
+	return i * NGrid + j;
 }
+
 
 int print(double *matrix,int n){
         for( int i=0;i<n;i++ ){
