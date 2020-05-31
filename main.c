@@ -10,6 +10,7 @@
 #include "prolongation.h"
 #include "basic.h"
 #include "cal_residual.h"
+#include "exactsolution.h"
 
 //	Set the basic parameters
 const float L   = 2*PI;                 // boxsize in the solver
@@ -27,6 +28,7 @@ int main( int argc, char *argv[] ){
 	cal_residual(potential,N);
 	
 	restriction(potential);
+	exactsolution((N+1)/2);	
 
 	free(analytic);
 	free(potential);
