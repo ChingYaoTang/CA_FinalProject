@@ -5,7 +5,7 @@ extern float dx, bc;
 extern const int N;
 extern const float L;
 extern double *analytic,*potential,*density;
-int ind(int i,int j);
+int ind(int i,int j, int n);
 int print(double *matric,int n);
 
 #endif

@@ -17,10 +17,15 @@ double* restriction(double *matrix){
 	result = (double *)malloc(N_*N_*sizeof(double));
 	for( int i=1;i<N_-1;i++ )
 	for( int j=1;j<N_-1;j++ ){
-		result[ind(i,j)] = matrix[ind(2*i,2*j)]/4\
-		+(matrix[ind(2*i+1,2*j)]+matrix[ind(2*i-1,2*j)]+matrix[ind(2*i,2*j+1)]+matrix[ind(2*i,2*j-1)])/8\
-		+(matrix[ind(2*i+1,2*j+1)]+matrix[ind(2*i-1,2*j-1)]\
-				+matrix[ind(2*i+1,2*j-1)]+matrix[ind(2*i-1,2*j+1)])/16;
+		result[ind(i, j, N)] = matrix[ind(2*i, 2*j, N)]/4
+				     + ( matrix[ind(2*i+1, 2*j, N)]
+				       + matrix[ind(2*i-1, 2*j, N)]
+			               + matrix[ind(2*i, 2*j+1, N)]
+				       + matrix[ind(2*i, 2*j-1, N)] )/8
+				     + ( matrix[ind(2*i+1, 2*j+1, N)]
+		 		       + matrix[ind(2*i-1, 2*j-1, N)]
+			 	       + matrix[ind(2*i+1, 2*j-1, N)]
+				       + matrix[ind(2*i-1, 2*j+1, N)])/16;
 	}
 	printf("test of restriction\n");
 	print(result,N_);

@@ -3,6 +3,7 @@
 #include <cstring>
 #include <math.h>
 #include "basic.h"
+#include "relative_error.h"
 #define PI acos(-1)
 extern const float L;
 extern float dx, bc;
