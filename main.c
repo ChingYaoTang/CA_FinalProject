@@ -17,11 +17,13 @@
 
 
 //	Set the basic parameters
-const float L          = PI;                // Boxsize in the solver
-const int   N          = 9;                   // Number of the resolution
-float	    dx	       = L/(N-1);             // Spatial interval 
-float	    bc	       = 0.0;                 // Boundary condition
-double      error_conv = 1e-3;                 // Convergence error for the smoothing
+const float  L          = PI;                // Boxsize in the solver
+const int    N          = 9;                   // Number of the resolution
+const double dx         = L/(N-1);             // Spatial interval 
+const double bc	        = 1.0;                 // Boundary condition
+const double kx         = 1.0;
+const double ky         = 1.0;
+double      error_conv  = 1e-3;                 // Convergence error for the smoothing
 
 
 int main( int argc, char *argv[] ) {
@@ -32,11 +34,10 @@ int main( int argc, char *argv[] ) {
 	density   = (double *)malloc( N * N * sizeof(double) );
 	residual  = (double *)malloc( N * N * sizeof(double) );
 //	Initialize the Poisson solver problem
-	init_sin( analytic, potential, density, 1.0, 1.0, 0.0 );
-     	print(potential,N);	
+	init_sin( analytic, potential, density );
+     	print( potential, N );	
 //      Pre-smoothing up to certain error_conv
 	relaxation( potential, density, N, dx, error_conv, 1.0 );
-//	smoothing(potential,density,10);
 	print(potential,N);
 /*//      Calculate the residual in finest grid
 	cal_residual( potential, density, residual, N, dx );      
@@ -46,7 +47,7 @@ int main( int argc, char *argv[] ) {
 //      Solver exact solution
 	double *phi_corr_2h = (double *)malloc( (N+1)/2 * (N+1)/2 * sizeof(double) );
 	exact_im( residual_2h, (N+1)/2, phi_corr_2h );
-//      Prolongation the phi_corr_2h to phi_corr_h
+//      Prolongate the phi_corr_2h to phi_corr_h
 	double *phi_corr_h = (double *)malloc( N * N * sizeof(double) );
 	prolongation( phi_corr_2h, (N+1)/2, phi_corr_h );	
 //	Update potential
