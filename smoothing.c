@@ -13,12 +13,12 @@ int smoothing(int n){
 	for( int k=0;k<n;k++ ){
 		for( int i=1;i<(N-1);i++ ){
 			for( int j=1;j<(N-1);j++ ){
-				potential[ind(i, j, n)] += potential[ind(i+1, j, n)]
+				potential[ind(i, j, n)] += 0.25*(potential[ind(i+1, j, n)]
 							+ potential[ind(i-1, j, n)]
 							+ potential[ind(i, j+1, n)]
 							+ potential[ind(i, j-1, n)]
 							- 4*potential[ind(i, j, n)]
-							- dx*dx*density[ind(i, j, n)];
+							- dx*dx*density[ind(i, j, n)]);
 			}
 		}
 	}

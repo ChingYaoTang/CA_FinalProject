@@ -15,8 +15,8 @@ double* restriction(double *matrix){
 	double 	*result;
 	int	N_ = (N+1)/2;
 	result = (double *)malloc(N_*N_*sizeof(double));
-	for( int i=1;i<N_-1;i++ )
-	for( int j=1;j<N_-1;j++ ){
+	for( int i=1;i<N_/2-1;i++ )
+	for( int j=1;j<N_/2-1;j++ ){
 		result[ind(i, j, N)] = matrix[ind(2*i, 2*j, N)]/4
 				     + ( matrix[ind(2*i+1, 2*j, N)]
 				       + matrix[ind(2*i-1, 2*j, N)]
