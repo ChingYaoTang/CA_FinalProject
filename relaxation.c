@@ -25,4 +25,5 @@ void relaxation( double *phi_guess, double *rho, int n, double h, double conv_er
 		}
 		error = relative_error( phi, phi_old, n);
 	}
+	free(phi_old);
 }
