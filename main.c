@@ -14,27 +14,47 @@
 #include "relative_error.h"
 
 //	Set the basic parameters
-const float L   = 2*PI;                 // boxsize in the solver
-const int   N   = 9;                   // Number of the resolution
-float	    dx	= L/(N-1);
-float	    bc	= 0.0;
-double 	*analytic,*potential,*density,*residual;
+const float L          = 2*PI;                // Boxsize in the solver
+const int   N          = 9;                   // Number of the resolution
+float	    dx	       = L/(N-1);             // Spatial interval 
+float	    bc	       = 0.0;                 // Boundary condition
+double      error_conv = 1e-5                 // Convergence error for the smoothing
 
 
+int main( int argc, char *argv[] ) {
 
-int main( int argc, char *argv[] ){
+	double *analytic, *potential, *density, *residual;
+	analytic  = (double *)malloc( N * N * sizeof(double) );
+	potential = (double *)malloc( N * N * sizeof(double) );
+	density   = (double *)malloc( N * N * sizeof(double) );
+	residual  = (double *)malloc( N * N * sizeof(double) );
+//	Initialize the Poisson solver problem
+	init_sin( analytic, potential, density, 1.0, 1.0, 0.0 );   
+//      Pre-smoothing up to certain error_conv
+	relaxation( potential, density, N, dx, error_conv, 1.0 );
+//      Calculate the residual in finest grid
+	cal_residual( potential, density, residual, N, dx );      
+//      Restrict the residual from h to 2h
+        double *residual_2h = (double *)malloc( (N+1)/2 * (N+1)/2 * sizeof(double) );
+	restriction( residual, N, residual_2h );
+//      Solver exact solution
+	double *phi_corr_2h = (double *)malloc( (N+1)/2 * (N+1)/2 * sizeof(double) );
+	exact_im( residual_2h, (N+1)/2, phi_corr_2h );
+//      Prolongation the phi_corr_2h to phi_corr_h
+	double *phi_corr_h = (double *)malloc( N * N * sizeof(double) );
+	prolongation( phi_corr_2h, (N+1)/2, phi_corr_h );	
+//	Update potential
+//	potential += phi_corr_h;
 
-	init_sin(1.0,1.0,0.0);		//Initialize the Poisson solver problem
-	smoothing(3);			//Applying smoothing for several times
-	cal_residual(potential,N);
-	
-	restriction(potential);
+//      Post-smoothing
+	relaxation( potential, density, N, dx, error_conv, 1.0 );
+
 //	exactsolution((N+1)/2);	
 
 	free(analytic);
 	free(potential);
 	free(density);
 
-	return 0;
+	return EXIT_SUCCESS;
 }
 

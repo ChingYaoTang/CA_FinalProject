@@ -7,7 +7,7 @@
 extern const float L;
 extern float dx, bc;
 extern const int N;
-extern double *analytic,*potential,*density;
+extern double *analytic, *potential, *density, *residual;
 
 int smoothing(int n){
 	for( int k=0;k<n;k++ ){

@@ -8,26 +8,26 @@
 extern const float L;
 extern float dx, bc;
 extern const int N;
-extern double *analytic,*potential,*density;
 
 
-double* prolongation(double *matrix){
-	double 	*result;
-	int	N_ = N*2-1;
-	result = (double *)malloc(N_*N_*sizeof(double));
-	for( int i=1;i<N_-1;i++ )
-	for( int j=1;j<N_-1;j++ ){
-		result[ind(i, j, N)] = matrix[ind(i/2, j/2, N)]
-			         + ( matrix[ind(i/2+1, j/2, N)]
-				   + matrix[ind(i/2-1, j/2, N)]
-				   + matrix[ind(i/2, j/2+1, N)]
-				   + matrix[ind(i/2, j/2-1, N)] )/2
-		                 + ( matrix[ind(i/2+1, j/2+1, N)]
-				   + matrix[ind(i/2-1, j/2-1, N)]
-				   + matrix[ind(i/2+1, j/2-1, N)]
-				   + matrix[ind(i/2-1, j/2+1, N)] )/4;
+// arguments: (1)coarse matrix, (2)matrix size of fine matrix, (3)fine matrix
+void prolongation( double *matrix_c, int n_c, matrix_f) {
+//	double 	*result;
+	int	n_f = n_c*2-1;
+//	result = (double *)malloc(n_f*n_f*sizeof(double));
+	for( int i=1; i<n_f-1; i++ )
+	for( int j=1; j<n_f-1; j++ ) {
+		matrix_f[ind(i, j, n_f)] = matrix_c[ind(i/2, j/2, n_c)]
+			        	 + ( matrix[ind(i/2+1, j/2, n_c)]
+				  	   + matrix[ind(i/2-1, j/2, n_c)]
+				   	   + matrix[ind(i/2, j/2+1, n_c)]
+				   	   + matrix[ind(i/2, j/2-1, n_c)] )/2
+		                	 + ( matrix[ind(i/2+1, j/2+1, n_c)]
+			 	   	   + matrix[ind(i/2-1, j/2-1, n_c)]
+					   + matrix[ind(i/2+1, j/2-1, n_c)]
+				   	   + matrix[ind(i/2-1, j/2+1, n_c)] )/4;
 	}
 	printf("test of prolongation\n");
-	print(result,N_);
-	return result;
+//	print(result,n_);
+//	return result;
 }

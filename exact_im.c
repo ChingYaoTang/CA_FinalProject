@@ -11,7 +11,7 @@ extern float dx, bc;
 extern const int N;
 extern double *residual;
 
-int exact_im( double *matrix,int n ){
+int exact_im( double *matrix, int n, double *phi_corr ) {
     //turn into Au=b where u and b are tempararily vectors
     //construct A
     double *A;

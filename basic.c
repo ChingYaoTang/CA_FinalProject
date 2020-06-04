@@ -6,14 +6,13 @@
 extern const float L;
 extern float dx, bc;
 extern const int N;
-extern double *analytic,*potential,*density;
 
 int ind( int i,int j, int NGrid ) {
 	return i * NGrid + j;
 }
 
 
-int print(double *matrix,int n){
+void print(double *matrix,int n){
         for( int i=0;i<n;i++ ){
                 for( int j=0;j<n;j++ ){
                         int index = i*N+j;
@@ -21,6 +20,6 @@ int print(double *matrix,int n){
                 }
                 printf("\n");
         }
-	return 0;
+//	return 0;
 }
 
