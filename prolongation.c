@@ -11,7 +11,7 @@ extern const int N;
 
 
 // arguments: (1)coarse matrix, (2)matrix size of fine matrix, (3)fine matrix
-void prolongation( double *matrix_c, int n_c, matrix_f) {
+void prolongation( double *matrix_c, int n_c, double matrix_f) {
 //	double 	*result;
 	int	n_f = n_c*2-1;
 //	result = (double *)malloc(n_f*n_f*sizeof(double));

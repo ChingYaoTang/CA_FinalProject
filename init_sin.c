@@ -8,7 +8,7 @@ extern const float L;
 extern float dx, bc;
 extern const int N;
 
-void init_sin( double *analytic, double *potential, double *density, float a,float b, float c) {
+void init_sin( double *analytic, double *potential, double *density, float a,float b, float c ) {
 	for( int i=0; i<N; i++) {
 		for( int j=0; j<N; j++) {
 			analytic[ind( i, j, N )] = sin(a*(float)i*dx)*sin(b*(float)j*dx)+c;
