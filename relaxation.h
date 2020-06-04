@@ -4,7 +4,6 @@
 extern float dx, bc;
 extern const int N;
 extern const float L;
-extern double *analytic,*potential,*density;
-int relaxation( double *phi, double *rho, int n, double delta, double conv_error, int method );
+void relaxation( double *phi_guess, double *rho, int n, double h, double conv_error, float omega );
 
 #endif
