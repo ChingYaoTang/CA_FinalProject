@@ -38,8 +38,12 @@ int exact_im( double *matrix,int n ){
         else if(i==2 && j==3) b[ind(i-1 ,j-1, n)] += matrix[ind(2, 4, n)];
         else if(i==3 && j==3) b[ind(i-1 ,j-1, n)] += matrix[ind(4, 3, n)]+matrix[ind(3, 4, n)];
     }
-    //calculate u=A^(-1)b
+    //calculate A^(-1)
+
+
     
+    //calculate u=A^(-1)b
+
 
     //turn u into a matrix
     
