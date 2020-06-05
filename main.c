@@ -35,25 +35,30 @@ int main( int argc, char *argv[] ) {
 	const double bc         = 1.0;                 // Boundary condition
 	const double kx         = 1.0;
 	const double ky         = 1.0;
-
 	init_sin( analytic, potential, density, kx, ky, bc );
-     	print( potential, N );	
+     	print( potential, N );
+
 //      Pre-smoothing up to certain error_conv
 	relaxation( potential, density, N, error_conv, 1.0, 1 );
 	print( potential, N );
+
 //      Calculate the residual in finest grid
 	cal_residual( potential, density, residual, N );
 	print( residual, N );
 	double *error_;
 	error_ = (double *)malloc(sizeof(double));
 	relative_error( potential, analytic, N , error_ );
-	free(error_);	
-/*//      Restrict the residual from h to 2h
+	free( error_) ;	
+
+//      Restrict the residual from h to 2h
         double *residual_2h = (double *)malloc( (N+1)/2 * (N+1)/2 * sizeof(double) );
 	restriction( residual, N, residual_2h );
-//      Solver exact solution
+	free( residual );
+	print( residual_2h, (N+1)/2 );
+/*//      Solver exact solution
 	double *phi_corr_2h = (double *)malloc( (N+1)/2 * (N+1)/2 * sizeof(double) );
 	exact_im( residual_2h, (N+1)/2, phi_corr_2h );
+
 //      Prolongate the phi_corr_2h to phi_corr_h
 	double *phi_corr_h = (double *)malloc( N * N * sizeof(double) );
 	prolongation( phi_corr_2h, (N+1)/2, phi_corr_h );	
