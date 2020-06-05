@@ -38,7 +38,7 @@ int main( int argc, char *argv[] ) {
      	print( potential, N );	
 //      Pre-smoothing up to certain error_conv
 	relaxation( potential, density, N, dx, error_conv, 1.0 );
-	print(potential,N);
+	print( potential, N );
 /*//      Calculate the residual in finest grid
 	cal_residual( potential, density, residual, N, dx );      
 //      Restrict the residual from h to 2h
