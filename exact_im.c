@@ -7,9 +7,8 @@
 #include "basic.h"
 
 extern const float L;
-extern double dx, bc;
+extern const double dx;
 extern const int N;
-extern double *residual;
 
 // m is the current size of matrix
 double comatrix(double *matrix, int p, int q, int m){
