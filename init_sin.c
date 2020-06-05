@@ -3,23 +3,19 @@
 #include <cstring>
 #include <math.h>
 #define PI acos(-1)
+#include "basic.h"
 extern const float L;
-extern float dx, bc;
+extern const double dx, kx, ky, bc;
 extern const int N;
-extern double *analytic,*potential,*density;
 
-int init_sin(float a,float b,float c){
-	analytic = (double *)malloc( N * N * sizeof(double) );
-	potential = (double *)malloc( N * N * sizeof(double) );
-	density = (double *)malloc( N * N * sizeof(double) );
-	for(int i=0;i<N;i++){
-		for(int j=0;j<N;j++){
-			int index = i*N + j;
-			analytic[index] = sin(a*(float)i*dx)*sin(b*(float)j*dx)+c;
-			density[index]   = -(a*a+b*b)*(analytic[index]-c);
-			if( i==0 || j==0 || i==(N-1) || j==(N-1)){potential[index]=bc;}
-                        else{potential[index]=0;}
+void init_sin( double *analytic, double *potential, double *density) {
+	for( int i=0; i<N; i++) {
+		for( int j=0; j<N; j++) {
+			analytic[ind( i, j, N )] = sin( kx*i*dx ) * sin( ky*j*dx ) + bc;
+			density[ind( i, j, N )]  = -( pow(kx,2) + pow(ky,2) ) * ( analytic[ind( i, j, N )] - bc );
+//			if( i==0 || j==0 || i==(N-1) || j==(N-1)) potential[ind( i, j, N )] = bc;
+//			else potential[ind( i, j, N )] = bc;
+			potential[ind( i, j, N )] = 0.3 * sin( kx*i*dx ) * sin( ky*j*dx ) + bc;
 		}
 	}
-	return 0;
 }
