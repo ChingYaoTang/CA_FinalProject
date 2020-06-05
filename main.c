@@ -14,6 +14,7 @@
 //usage:( potential, density, size of matrix, spatial interval,convergence criteria, omega of SOR)
 #include "relative_error.h"
 //usage:double value of error = ((1)experimental value, (2)theoretical value, (3)matrix size)
+#include "exact_im.h"
 
 
 //	Set the basic parameters
