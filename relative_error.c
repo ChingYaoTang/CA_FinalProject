@@ -13,4 +13,5 @@ void relative_error( double *expe, double *theo, int n, double *error ) {
 		*error += fabs( ( expe[ind(i, j, n)] - theo[ind(i, j, n)] ) / theo[ind(i, j, n)] );
 	}
 	*error /= pow(n,2);
+	printf("Relative error = %g\n", *error);
 }

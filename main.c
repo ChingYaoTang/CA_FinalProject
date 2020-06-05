@@ -32,17 +32,22 @@ int main( int argc, char *argv[] ) {
 	density   = (double *)malloc( N * N * sizeof(double) );
 	residual  = (double *)malloc( N * N * sizeof(double) );
 //	Initialize the Poisson solver problem
-	const double bc         = 0.0;                 // Boundary condition
+	const double bc         = 1.0;                 // Boundary condition
 	const double kx         = 1.0;
 	const double ky         = 1.0;
 
 	init_sin( analytic, potential, density, kx, ky, bc );
      	print( potential, N );	
 //      Pre-smoothing up to certain error_conv
-	relaxation( potential, density, N, dx, error_conv, 1.0 );
+	relaxation( potential, density, N, error_conv, 1.0, 1 );
 	print( potential, N );
 //      Calculate the residual in finest grid
-	cal_residual( potential, density, residual, N, dx );      
+	cal_residual( potential, density, residual, N );
+	print( residual, N );
+	double *error_;
+	error_ = (double *)malloc(sizeof(double));
+	relative_error( potential, analytic, N , error_ );
+	free(error_);	
 /*//      Restrict the residual from h to 2h
         double *residual_2h = (double *)malloc( (N+1)/2 * (N+1)/2 * sizeof(double) );
 	restriction( residual, N, residual_2h );
