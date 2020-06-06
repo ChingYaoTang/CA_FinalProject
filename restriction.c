@@ -5,7 +5,7 @@
 #define PI acos(-1)
 #include "basic.h"
 
-// Input the fine gird matrix and calculate the corresponding coarse grid matrix by bilinear operator
+// Input the fine gird matrix and calculate the corresponding coarse grid matrix by full weighting operator
 
 // arguments: (1)fine matrix, (2)matrix size of fine matrix, (3)coarse matrix
 void restriction( double *matrix_f, int n_f, double *matrix_c ) {
@@ -36,6 +36,6 @@ void restriction( double *matrix_f, int n_f, double *matrix_c ) {
 		matrix_c[ind(i_c, n_c-1, n_c)] = matrix_f[ind(i_f, n_f-1, n_f)];
 	}
 
-	printf("Finish restriction\n");
+	printf("Finish restriction from n_f = %d to n_c = %d \n", n_f, n_c);
 	
 }

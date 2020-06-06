@@ -7,8 +7,8 @@
 #define PI acos(-1)
 extern const float L;
 
-// arguments: (1)phi matirx, (2)rho matrix, (3)size of the matrix,
-//             (4)convergence criteria, (5)omega for SOR, (6)1="normal", 2="even odd"
+// arguments: (1)phi matirx, (2)rho matrix, (3)size of the matrix,(4)convergence criteria, 
+// 	      (5)omega for SOR (should be 1 for smoothing => GS), (6)1="normal", 2="even odd"
 void relaxation( double *phi_guess, double *rho, int n, double conv_error, float omega, int method ) {
 	double h = L/(n-1);
 	int itera = 0;
@@ -73,5 +73,5 @@ void relaxation( double *phi_guess, double *rho, int n, double conv_error, float
 	printf( "Total iteration = %d, final conv error = %e\n", itera, *error);
 	free( phi_old );
 	free( error );
-	printf( "Finish relaxation.\n");
+	printf( "Finish relaxation with n = %d.\n", n);
 }

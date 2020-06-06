@@ -22,10 +22,10 @@ void cal_residual( double *phi_guess, double *rho, double *residual, int n ) {
 						      - phi_guess[ind(i, j, n)]*4 )
 				         - rho[ind(i, j, n)];
 	}
-//	calculate boundary points
+//	impose homogeneous boundary condition
 	for( int i=0; i<n; i++ ) {
 		residual[ind(i, 0, n)] = residual[ind(i, n-1, n)] = residual[ind(0, i, n)] = residual[ind(n-1, i, n)] = 0.0;
 	}
-	printf("Finish residual calculation.\n");
+	printf("Finish residual calculation with n = %d.\n", n);
 //	print(residual,n);
 }

@@ -33,7 +33,7 @@ int main( int argc, char *argv[] ) {
 	density   = (double *)malloc( N * N * sizeof(double) );
 	residual  = (double *)malloc( N * N * sizeof(double) );
 //	Initialize the Poisson solver problem
-	const double bc         = 0.0;        // Boundary condition
+	const double bc         = 1.0;        // Boundary condition
 	const double kx         = PI/L;
 	const double ky         = PI/L;
 	init_sin( analytic, potential, density, kx, ky, bc );
@@ -46,10 +46,10 @@ int main( int argc, char *argv[] ) {
 //      Calculate the residual in finest grid
 	cal_residual( potential, density, residual, N );
 	print( residual, N );
-	double *error_;
-	error_ = (double *)malloc(sizeof(double));
-	relative_error( potential, analytic, N , error_ );
-	free( error_) ;	
+//	double *error_;
+//	error_ = (double *)malloc(sizeof(double));
+//	relative_error( potential, analytic, N , error_ );
+//	free( error_) ;	
 
 //      Restrict the residual from h to 2h
         double *residual_2h = (double *)malloc( (N+1)/2 * (N+1)/2 * sizeof(double) );
@@ -57,7 +57,7 @@ int main( int argc, char *argv[] ) {
 	print( residual_2h, (N+1)/2 );
 
 //      Solver exact solution
-//	double *phi_corr_2h = (double *)malloc( (N+1)/2 * (N+1)/2 * sizeof(double) );
+	double *phi_corr_2h = (double *)malloc( (N+1)/2 * (N+1)/2 * sizeof(double) );
 //	exact_im( residual_2h, (N+1)/2, phi_corr_2h );
 
 //      Prolongate the phi_corr_2h to phi_corr_h
