@@ -1,7 +1,7 @@
 TARGET	= MG_solver
 CC	= mpic++
 CFLAGS	= -o
-OBJ	= main.o init_sin.o basic.o restriction.o prolongation.o cal_residual.o relaxation.o relative_error.o exact_im.o
+OBJ	= main.o init_sin.o basic.o restriction.o prolongation.o cal_residual.o relaxation.o relative_error.o
 RM	= rm -f
 
 $(TARGET):$(OBJ)
@@ -21,8 +21,6 @@ cal_residual.o:cal_residual.c
 relaxation.o:relaxation.c
 	$(CC) $(CFLAGS) $@ -c $^
 relative_error.o:relative_error.c
-	$(CC) $(CFLAGS) $@ -c $^
-exact_im.o:exact_im.c
 	$(CC) $(CFLAGS) $@ -c $^
 
 
