@@ -9,15 +9,31 @@ extern const float L;
 
 // arguments: (1)phi matirx, (2)rho matrix, (3)size of the matrix,(4)convergence criteria, 
 // 	      (5)omega for SOR (should be 1 for smoothing => GS), (6)1="normal", 2="even odd"
-void relaxation( double *phi_guess, double *rho, int n, double conv_error, float omega, int method ) {
+void relaxation( double *phi_guess, double *rho, int n, double conv_criteria, float omega, int method ) {
 	double h = L/(n-1);
-	int itera = 0;
+	int *itera = (int *)malloc( sizeof(int) );
+	*itera = 0;
 	double *error = (double *)malloc( sizeof(double) );
 	*error = 1;
+
 	double *phi_old = (double *)malloc( n*n*sizeof(double) );
+
+//	double *condition1;
+//	double *condition2;
+//	if( conv_criteria<1 ) {
+//		condition1 = error;
+//		*condition2 = conv_criteria;
+//	}
+//	else {
+//		*condition1 = conv_criteria;
+//		condition2 = itera;
+//	}
+
 	if( method==1 ) {
-		while( *error>conv_error ) {
-			itera += 1;
+//		while( *condition1 > *condition2 ) {
+//		while( *error>conv_criteria ) {
+		while( *itera<conv_criteria ) {
+			*itera += 1;
 			*error = 0;
 //		       	copy old potential
 			memcpy( phi_old, phi_guess, n*n*sizeof(double) );
@@ -33,9 +49,10 @@ void relaxation( double *phi_guess, double *rho, int n, double conv_error, float
 			}
 		}
 	} else if( method==2 ) {
-//	while( itera< 1000 ) 
-		while( *error>conv_error ) {
-			itera += 1;
+//		while( *condition1 > *condition2 ) {
+//		while( *error>conv_criteria ) {
+		while( *itera<conv_criteria ) {
+			*itera += 1;
 			*error = 0;
 //	       		copy old potential
 			memcpy( phi_old, phi_guess, n*n*sizeof(double) );
@@ -70,8 +87,8 @@ void relaxation( double *phi_guess, double *rho, int n, double conv_error, float
 //		}
 		}
 	}
-	printf( "Total iteration = %d, final conv error = %e\n", itera, *error);
+	printf( "Finish relaxation with n = %d, total iteration = %d, final conv error = %e\n", n, *itera, *error);
 	free( phi_old );
 	free( error );
-	printf( "Finish relaxation with n = %d.\n", n);
+	free( itera );
 }

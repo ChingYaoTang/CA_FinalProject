@@ -5,6 +5,7 @@
 #define PI acos(-1)
 #include "prolongation.h"
 #include "restriction.h"
+
 int ind( int i, int j, int NGrid ) {
 	return i * NGrid + j;
 }
@@ -18,6 +19,15 @@ void print( double *matrix, int n) {
                 }
                 printf("\n");
         }
+}
+
+void add_correction( double *phi_old, double *phi_corr, int n  ) {
+	int i, j;
+	for( i=0; i<n; i++)
+	for( j=0; j<n; j++) {
+		phi_old[ind(i, j, n)] -= phi_corr[ind(i, j, n)];
+	}
+
 }
 
 void test_prol_rest( const int N ) {
