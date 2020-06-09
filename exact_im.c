@@ -8,6 +8,7 @@
 
 
 //find comatrix
+//delete row and column the new matrix is a (m-1)*(m-1) matrix
 void comatrix(double *matrix, int p, int q, int m, double *comx){
     for (int i=0;i<m;i++){
         for (int j=0;j<m;j++){    
@@ -20,6 +21,7 @@ void comatrix(double *matrix, int p, int q, int m, double *comx){
 }
 
 //find determinant
+//by method of expanding out the first row recursively until the comatrix is 1 dimenison
 double det(double *matrix, int m){
     int D=0;
     int sign=1;
@@ -35,6 +37,8 @@ double det(double *matrix, int m){
 }
 
 //find inverse matrix
+//if C is the matrix of cofactors (ie every element is the determinant of its comatrix)
+//then the inverse matrix = (-1)^(i+j)*(transpose of C)/(determinant of matrix)
 void inversematrix(double *matrix, int n, double *invmx){
     int sign=1;
     double* comx;
@@ -52,49 +56,10 @@ void inversematrix(double *matrix, int n, double *invmx){
 extern const int N;
 extern const double dx;
 void exact_im(double *residual, int n, double *phi_corr){
-    /*//external const
-    const int N = 10;
-    const double dx = 0.01;
-    const int n = 5;
-    
-    //initialize 
-    int data = 1;
-    double* phi_corr;
-    phi_corr = (double*)malloc(n * n * sizeof(double));
-    double* residual;
-    residual = (double*)malloc(n * n * sizeof(double));
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            phi_corr[ind(i, j, n)] = data;
-            residual[ind(i, j, n)] = data;
-            data++;
-            //printf("%f\n", residual[ind(i, j, n)]);
-        }
-    }*/
-    /*
-    //test comatrix 
-    double* comx_residual;
-    comx_residual = (double*)malloc((n-1) * (n-1) * sizeof(double));
-    comatrix(residual, 0, 0, n, comx_residual);
-    for (int i = 0; i < n-1; i++) {
-        for (int j = 0; j < n-1; j++) {
-            //printf("%f\n", comx_residual[ind(i, j, n-1)]);
-        }
-    }
-    //test determinant
-    printf("%f\n", det(residual, n));
-    
-    //test inverse matrix
-    double* invmx_residual;
-    invmx_residual = (double*)malloc(n * n * sizeof(double));
-    inversematrix(residual, n, invmx_residual);
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            printf("%f\n", invmx_residual[ind(i, j, n)]);
-        }
-    }
-    */
+    //convert Laplacian(phi_corr)=-residual to Au=b 
+    //where u and b are vectors of dimension = (n-2)^2 
     const int n_ext = pow(n - 2, 2);
+    
     //construct A
     double* A;
     A = (double*)malloc(n_ext * n_ext * sizeof(double));
@@ -103,7 +68,6 @@ void exact_im(double *residual, int n, double *phi_corr){
             if (i == j) A[ind(i, j, n_ext)] = 4;
             else if (i == j + 1 || i == j - 1 || i == j + 3 || i == j - 3) A[ind(i, j, n_ext)] = -1;
             else A[ind(i, j, n_ext)] = 0;
-            //printf("%f\n", A[ind(i, j, n_ext)]);
         }
     }
    
@@ -113,20 +77,8 @@ void exact_im(double *residual, int n, double *phi_corr){
     for (int i = 0; i < n - 2; i++) {
         for (int j = 0; j < n - 2; j++) {
             b[ind(i, j, n - 2)] = pow((N / n) * dx, 2) * residual[ind(j + 1, i + 1, n)];
-            //printf("%f\n", b[ind(i, j, n-2)]);
         }
     }
-        //only for n=5
-    /* b[ind(0, 0, n-2)] += residual[ind(0, 1, n)] + residual[ind(1, 0, n)];
-    b[ind(0, 1, n-2)] += residual[ind(2, 0, n)];
-    b[ind(0, 2, n-2)] += residual[ind(4, 1, n)] + residual[ind(3, 0, n)];
-    b[ind(1, 0, n-2)] += residual[ind(0, 2, n)];
-    b[ind(1, 2, n-2)] += residual[ind(4, 2, n)];
-    b[ind(2, 0, n-2)] += residual[ind(0, 3, n)] + residual[ind(1, 4, n)];
-    b[ind(2, 1, n-2)] += residual[ind(2, 4, n)];
-    b[ind(2, 2, n-2)] += residual[ind(4, 3, n)] + residual[ind(3, 4, n)];*/
-    
-        //for arbitrary n
     b[ind(0, 0, n_ext)] += residual[ind(0, 1, n)] + residual[ind(1, 0, n)];
     b[ind(0, 1, n_ext)] += residual[ind(2, 0, n)];
     b[ind(0, 2, n_ext)] += residual[ind(4, 1, n)] + residual[ind(3, 0, n)];
@@ -135,30 +87,22 @@ void exact_im(double *residual, int n, double *phi_corr){
     b[ind(0, n_ext-3, n_ext)] += residual[ind(0, 3, n)] + residual[ind(1, 4, n)];
     b[ind(0, n_ext-2, n_ext)] += residual[ind(2, 4, n)];
     b[ind(0, n_ext-1, n_ext)] += residual[ind(4, 3, n)] + residual[ind(3, 4, n)];
-    /*for (int i = 0; i < n - 2; i++) {
-        for (int j = 0; j < n - 2; j++) {
-            printf("%f\n", b[ind(i, j, n-2)]);
-        }
-    }*/
+
     //calculate A^(-1)
     double* invmx_A;
     invmx_A = (double*)malloc(n_ext * n_ext * sizeof(double));
     inversematrix(A, n_ext, invmx_A);
-    /*for (int i = 0; i < n_ext; i++) {
-        for (int j = 0; j < n_ext; j++) {
-            printf("%f\n", invmx_A[ind(i, j, n_ext)]);
-        }
-    }*/
+
     //calculate u=A^(-1)b
-    double *phi_corr_nb;
+    double *phi_corr_nb; //nb stands for "no boundary"
     phi_corr_nb = (double *)malloc(n_ext*sizeof(double));
     for(int i=0;i<n_ext;i++){
 	    for(int j=0;j<n_ext;j++){
             phi_corr_nb[ind(0,i,n_ext)]+=invmx_A[ind(i,j,n_ext)]*b[ind(0,j,n_ext)];
         }
-        //printf("%f\n", phi_corr_nb[ind(0, i, n_ext)]);
     }
     //phi_corr_nb is now a matrix phi_corr_nb[ind(i,j,n-2)], without boundary
+    
     //paste the boundary
     for(int i=0;i<n;i++){
 	    for(int j=0;j<n;j++){
@@ -166,7 +110,6 @@ void exact_im(double *residual, int n, double *phi_corr){
                 phi_corr[ind(i,j,n)]=0;
             else 
                 phi_corr[ind(i,j,n)]=phi_corr_nb[ind(i-1,j-1,n-2)];
-            //printf("%f\n", phi_corr[ind(i, j, n)]);
         }
     }
 }
