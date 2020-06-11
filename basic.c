@@ -12,13 +12,13 @@ int ind( int i, int j, int NGrid ) {
 
 
 void print( double *matrix, int n) {
-        for( int i=0; i<n; i++ ) {
-                for( int j=0; j<n; j++ ) {
-                        int index = i*n + j;
-                        printf("%.3e\t", matrix[index]);
-                }
-                printf("\n");
+    for( int i=0; i<n; i++ ) {
+        for( int j=0; j<n; j++ ) {
+            int index = i*n + j;
+                printf("%.3e\t", matrix[index]);
         }
+    printf("\n");
+    }
 }
 
 void add_correction( double *phi_old, double *phi_corr, int n  ) {
@@ -27,7 +27,6 @@ void add_correction( double *phi_old, double *phi_corr, int n  ) {
 	for( j=0; j<n; j++) {
 		phi_old[ind(i, j, n)] += phi_corr[ind(i, j, n)];
 	}
-
 }
 
 void test_prol_rest( const int N ) {
