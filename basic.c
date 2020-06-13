@@ -25,7 +25,7 @@ void add_correction( double *phi_old, double *phi_corr, int n  ) {
 	int i, j;
 	for( i=0; i<n; i++)
 	for( j=0; j<n; j++) {
-		phi_old[ind(i, j, n)] -= phi_corr[ind(i, j, n)];
+		phi_old[ind(i, j, n)] += phi_corr[ind(i, j, n)];
 	}
 
 }
