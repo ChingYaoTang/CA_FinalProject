@@ -7,32 +7,33 @@
 #define PI acos(-1)
 extern const float L;
 
-// arguments: (1)phi matirx, (2)rho matrix, (3)size of the matrix,(4)convergence criteria, 
-// 	      (5)omega for SOR (should be 1 for smoothing => GS), (6)1="normal", 2="even odd"
-void relaxation( double *phi_guess, double *rho, int n, double conv_criteria, float omega, int method ) {
+// arguments: (1)phi matirx, (2)rho matrix, (3)size of the matrix,(4)convergence criterion, 
+// 	      (5)updating method: 1="normal", 2="even odd", (6)omega for SOR (should be 1 for smoothing => GS), 
+// 	      (7)which equation are we dealing with: 0 for Poisson eq., 1 for residual eq. 
+void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, int method, float omega, bool w ) {
 	double h = L/(n-1);
-	int *itera = (int *)malloc( sizeof(int) );
+	double *itera = (double *)malloc( sizeof(double) );
 	*itera = 0;
 	double *error = (double *)malloc( sizeof(double) );
 	*error = 1;
 
 	double *phi_old = (double *)malloc( n*n*sizeof(double) );
 
-//	double *condition1;
-//	double *condition2;
-//	if( conv_criteria<1 ) {
-//		condition1 = error;
-//		*condition2 = conv_criteria;
-//	}
-//	else {
-//		*condition1 = conv_criteria;
-//		condition2 = itera;
-//	}
+//	Set the convergence criterion
+	double *condition1;
+	double *condition2;
+	if( *conv_criterion<1.0 ) {
+		condition1 = error;
+		condition2 = conv_criterion;
+	} else {
+		condition1 = conv_criterion;
+		condition2 = itera;
+	}
 
 	if( method==1 ) {
-//		while( *condition1 > *condition2 ) {
-//		while( *error>conv_criteria ) {
-		while( *itera<conv_criteria ) {
+		while( *condition1 > *condition2 ) {
+//		while( *error>*conv_criterion ) {
+//		while( *itera<*conv_criterion ) {
 			*itera += 1;
 			*error = 0;
 //		       	copy old potential
@@ -44,14 +45,14 @@ void relaxation( double *phi_guess, double *rho, int n, double conv_criteria, fl
 							             + phi_guess[ind(i, j+1, n)]
 							             + phi_guess[ind(i, j-1, n)]
 						        	     - phi_guess[ind(i, j, n)]*4
-						        	     - rho[ind(i, j, n)] * pow(h,2) );
+						        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
 				*error += fabs( ( phi_guess[ind(i, j, n)] - phi_old[ind(i, j, n)] ) / phi_old[ind(i, j, n)] );
 			}
 		}
 	} else if( method==2 ) {
-//		while( *condition1 > *condition2 ) {
+		while( *condition1 > *condition2 ) {
 //		while( *error>conv_criteria ) {
-		while( *itera<conv_criteria ) {
+//		while( *itera<conv_criteria ) {
 			*itera += 1;
 			*error = 0;
 //	       		copy old potential
@@ -64,7 +65,7 @@ void relaxation( double *phi_guess, double *rho, int n, double conv_criteria, fl
 							             + phi_guess[ind(i, j+1, n)]
 							             + phi_guess[ind(i, j-1, n)]
 							             - phi_guess[ind(i, j, n)]*4
-						        	     - rho[ind(i, j, n)] * pow(h,2) );
+						        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
 				*error += fabs( ( phi_guess[ind(i, j, n)] - phi_old[ind(i, j, n)] ) / phi_old[ind(i, j, n)] );
 			}
 //			update even part
@@ -75,7 +76,7 @@ void relaxation( double *phi_guess, double *rho, int n, double conv_criteria, fl
 							             + phi_guess[ind(i, j+1, n)]
 							             + phi_guess[ind(i, j-1, n)]
 							             - phi_guess[ind(i, j, n)]*4
-						        	     - rho[ind(i, j, n)] * pow(h,2) );
+						        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
 				*error += fabs( ( phi_guess[ind(i, j, n)] - phi_old[ind(i, j, n)] ) / phi_old[ind(i, j, n)] );
 			}
 
@@ -87,7 +88,7 @@ void relaxation( double *phi_guess, double *rho, int n, double conv_criteria, fl
 //		}
 		}
 	}
-	printf( "Finish relaxation with n = %d, total iteration = %d, final conv error = %e\n", n, *itera, *error);
+	printf( "[N = %d             ] Finish relaxation. Total iteration = %g, final conv error = %e\n", n, *itera, *error);
 	free( phi_old );
 	free( error );
 	free( itera );
