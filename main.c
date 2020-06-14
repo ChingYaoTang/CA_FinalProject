@@ -19,10 +19,11 @@
 
 //	Set the basic parameters
 const float  L                = 1; 	    	// Boxsize in the solver
-const int    N                = 9;              // Number of the resolution
+const int    N                = 17;              // Number of the resolution
 const double dx               = L/(N-1);	// Spatial interval 
 const int    cycle_num        = 2;		// number of cylces
-int          cycle            = 1;		// 1:two grid, 2:V cycle, 3:W cycle
+int          cycle_type       = 3;		// 1:two grid, 2:W cycle, 3:V cycle
+int          final_level      = 3;
 
 int main( int argc, char *argv[] ) {
 //	test_prol_rest(N);	
@@ -43,7 +44,7 @@ int main( int argc, char *argv[] ) {
     //print( analytic, N );
 
 //	which cycle do u wanna use?
-	if (cycle=1) {
+	if (cycle_type==1) {
 		for( int times=0; times<cycle_num; times++ ) {
 			printf("\nTwo-grid No.%d\n", times);	
 			//	Pre-smoothing up to certain error_criterion
@@ -63,6 +64,7 @@ int main( int argc, char *argv[] ) {
 			//	Solve exact solution of phi_corr_2h
 			double *phi_corr_2h = (double *)malloc( (N+1)/2 * (N+1)/2 * sizeof(double) );
 			exact_im( residual_2h, (N+1)/2, phi_corr_2h );
+			//print( phi_corr_2h, (N+1)/2 );
 
 			//	Prolongate the phi_corr_2h to phi_corr_h
 			double *phi_corr_h = (double *)malloc( N * N * sizeof(double) );
@@ -86,7 +88,7 @@ int main( int argc, char *argv[] ) {
 	}
 /*
 	//a test for writing residual and phi_corr together
-	else if (cycle=2) {
+	else if (cycle_type==2) {
 		for( int times=0; times<cycle_num; times++ ) {
 			
 			//	Pre-smoothing up to certain error_criterion
@@ -131,16 +133,90 @@ int main( int argc, char *argv[] ) {
 		}
 	}
 */
-	else if (cycle=3) {
-		for(int times=0;times<1;times++){
-			double *error_ = (double *)malloc(sizeof(double));
-			
-			double *residual_h = (double *)malloc( N * N * sizeof(double) );
+	else if (cycle_type==3) {
+		//total length of residual = total length of phi_old
+		int tot_length = 0;
+		int *nn        = (int *)malloc( final_level * sizeof(int));
+		int *level_ind = (int *)malloc( final_level * sizeof(int));
+		int m          = N;
+		for( int l=0; l<final_level; l++ ) {
+			nn[l]        =  m;		// dim for each level
+			level_ind[l] =  tot_length;	// index for each level
+			tot_length   += pow(m,2);	// total length
+			m            = (m+1)/2;
 		}
 
+		double *phi_old  = (double *)malloc( tot_length * sizeof(double) );
+		double *phi_corr = (double *)malloc( tot_length * sizeof(double) );
+		double *residual = (double *)malloc( tot_length * sizeof(double) );
+		double *rho      = (double *)malloc( tot_length * sizeof(double) );
+		memcpy( (phi_old + level_ind[0] ), potential, pow(nn[0],2) * sizeof(double) );
+		memcpy( (rho + level_ind[0] ), density, pow(nn[0],2) * sizeof(double) );
+		
+		for( int times=0; times<cycle_num; times++ ) {
+			printf("====================================================================================================\nV cycle No.%d\n", times);
+
+			//	down-sample until the level before final one
+			for( int l=0; l<final_level-1; l++ ) {
+				printf("----------------------------------------------------------------------------------------------------\nLevel:%d\n", l);
+				bool w=1;
+				if( l==0 ) w=0 ;
+				//	Pre-smoothing
+				relaxation( (phi_old + level_ind[l]), (rho + level_ind[l]), nn[l], error_criterion, 1, 1, w );
+				if( l==0 ) relative_error( (phi_old + level_ind[l]), analytic, nn[l], error_rel );
+
+				//	Calculate the residual
+				cal_residual( (phi_old + level_ind[l]), (rho + level_ind[l]), (residual + level_ind[l]), nn[l], w );
+
+				//	Restrict the residual, which is rho in next level
+				restriction( (residual + level_ind[l]), nn[l], (rho + level_ind[l+1]) );
+				printf("Down-sample to next level.\n");
+			}
+			printf("----------------------------------------------------------------------------------------------------\nReach the final level.\n");
+			printf("Level:%d (Coarsest level)\n", final_level-1);
+			//	Solve exact solution in coarsest level
+			exact_im( (rho + level_ind[final_level-1]), nn[final_level-1], (phi_old + level_ind[final_level-1]) );
+			//print((phi_old + level_ind[final_level-1]),nn[final_level-1]);
+			
+			//	Prolongate the phi_old, which is phi_corr in previous level
+			prolongation( (phi_old + level_ind[final_level-1]), nn[final_level-1], (phi_corr + level_ind[final_level-2]) );	
+			printf("Up-sample to previous level.\n");
+
+			//	up-sample until the level before finest one
+			for( int l=final_level-2; l>0; l-- ) {	
+				printf("----------------------------------------------------------------------------------------------------\nLevel:%d\n", l);
+				//	Update phi_old
+				add_correction( (phi_old + level_ind[l]), (phi_corr + level_ind[l]), nn[l] );
+	
+				//	Post-smoothing phi_old
+				relaxation( (phi_old + level_ind[l]), (rho + level_ind[l]), nn[l], error_criterion, 1, 1, 1 );
+
+				//	Prolongate the phi_old, which is phi_corr in former level
+				prolongation( (phi_old + level_ind[l]), nn[l], (phi_corr + level_ind[l-1]) );	
+				printf("Up-sample to previous level.\n");
+			}
+
+			printf("----------------------------------------------------------------------------------------------------\nLevel:%d (Finest level) \n", 0);
+			//	Update phi_old in finest level
+			add_correction( (phi_old + level_ind[0]), (phi_corr + level_ind[0]), nn[0] );
+
+			//	Post-smoothing phi_old in finest level
+			relaxation( (phi_old + level_ind[0]), (rho + level_ind[0]), nn[0], error_criterion, 1, 1, 0 );
+			//	Compute error
+			//print( potential, N );
+			relative_error( (phi_old + level_ind[0]), analytic, nn[0], error_rel );
+			
+		}
+		free(nn);
+		free(level_ind);
+		free(residual);
+		free(phi_old);
+		free(phi_corr);
+
 	}
+
 /*
-	else if (cycle=4){
+	else if (cycle_type==4){
 		for(int times=0;times<1;times++){
 			double *error_ = (double *)malloc(sizeof(double));
 		}

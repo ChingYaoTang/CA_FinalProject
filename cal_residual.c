@@ -15,6 +15,7 @@ extern const float L;
 // arguments: (1)phi_guess matrix, (2)rho matrix, (3)residual matrix, (4)matrix size, (5)which equation are we dealing with
 void cal_residual( double *phi_guess, double *rho, double *residual, int n, bool w ) {
 	double h = L/(n-1);
+
 //      calculate interior points
 //      0 for original Poisson equation, 1 for residual equation
 	for( int i=1; i<n-1; i++ )
