@@ -21,20 +21,23 @@
 const float  L                = 1; 	    	// Boxsize in the solver
 const int    N                = 17;              // Number of the resolution
 const double dx               = L/(N-1);	// Spatial interval 
-const int    cycle_num        = 2;		// number of cylces
-int          cycle_type       = 3;		// 1:two grid, 2:W cycle, 3:V cycle
-int          final_level      = 3;
+const int    cycle_num        = 2;		// Number of cylces
+int          cycle_type       = 3;		// 1:two grid, 2:W cycle, 3:V cycle, 4:SOR
+int          final_level      = 3;		// Final level of V cycle or W cycle
+bool         sor_method       = 0;		// 0:even-odd, 1:normal
 
 int main( int argc, char *argv[] ) {
 //	test_prol_rest(N);	
 
-	double *analytic, *potential, *density, *error_criterion;
-	analytic               = (double *)malloc( N * N * sizeof(double) );	// analytic potential matrix
-	potential              = (double *)malloc( N * N * sizeof(double) );	// potential matrix of initial guess
-	density                = (double *)malloc( N * N * sizeof(double) );	// density matrix
-	error_criterion        = (double *)malloc( sizeof(double) );		// Criterion for the smoothing
-	*error_criterion       = 10;
-	double *error_rel      = (double *)malloc( sizeof(double) );		// Relative error with analytic solution
+	double *conv_loop        = (double *)malloc( sizeof(double) );		// Criterion for the smoothing
+	*conv_loop               = 10;
+	double *conv_precision   = (double *)malloc( sizeof(double) );		// Criterion for exact relaxation solver
+	*conv_precision          = 1e-14;
+
+	double *analytic         = (double *)malloc( N * N * sizeof(double) );	// analytic potential matrix
+	double *potential        = (double *)malloc( N * N * sizeof(double) );	// potential matrix of initial guess
+	double *density          = (double *)malloc( N * N * sizeof(double) );	// density matrix
+	double *error_rel        = (double *)malloc( sizeof(double) );		// Relative error with analytic solution
 	
 //	Initialize the Poisson solver problem
 	const double bc         = 1.0;        // Boundary condition
@@ -47,8 +50,8 @@ int main( int argc, char *argv[] ) {
 	if (cycle_type==1) {
 		for( int times=0; times<cycle_num; times++ ) {
 			printf("\nTwo-grid No.%d\n", times);	
-			//	Pre-smoothing up to certain error_criterion
-			relaxation( potential, density, N, error_criterion, 1, 1, 0 );
+			//	Pre-smoothing
+			relaxation( potential, density, N, conv_loop, 1, 1, 0 );
 			relative_error( potential, analytic, N, error_rel );
 
 			//	Calculate the residual in finest grid
@@ -74,7 +77,7 @@ int main( int argc, char *argv[] ) {
 			add_correction( potential, phi_corr_h, N );
 
 			//	Post-smoothing
-			relaxation( potential, density, N, error_criterion, 1, 1, 0 );
+			relaxation( potential, density, N, conv_loop, 1, 1, 0 );
 
 			//	Compute error
 			//print( potential, N );
@@ -133,8 +136,12 @@ int main( int argc, char *argv[] ) {
 		}
 	}
 */
+//	V cycle
 	else if (cycle_type==3) {
-		//total length of residual = total length of phi_old
+		// total length of residual 
+		// = total length of phi_old 
+		// = total length of rho 
+		// = total length of phi_corr - pow(nn[final_level-1],2)
 		int tot_length = 0;
 		int *nn        = (int *)malloc( final_level * sizeof(int));
 		int *level_ind = (int *)malloc( final_level * sizeof(int));
@@ -147,7 +154,7 @@ int main( int argc, char *argv[] ) {
 		}
 
 		double *phi_old  = (double *)malloc( tot_length * sizeof(double) );
-		double *phi_corr = (double *)malloc( tot_length * sizeof(double) );
+		double *phi_corr = (double *)malloc( (tot_length - pow(nn[final_level-1],2)) * sizeof(double) );
 		double *residual = (double *)malloc( tot_length * sizeof(double) );
 		double *rho      = (double *)malloc( tot_length * sizeof(double) );
 		memcpy( (phi_old + level_ind[0] ), potential, pow(nn[0],2) * sizeof(double) );
@@ -162,7 +169,7 @@ int main( int argc, char *argv[] ) {
 				bool w=1;
 				if( l==0 ) w=0 ;
 				//	Pre-smoothing
-				relaxation( (phi_old + level_ind[l]), (rho + level_ind[l]), nn[l], error_criterion, 1, 1, w );
+				relaxation( (phi_old + level_ind[l]), (rho + level_ind[l]), nn[l], conv_loop, 1, 1, w );
 				if( l==0 ) relative_error( (phi_old + level_ind[l]), analytic, nn[l], error_rel );
 
 				//	Calculate the residual
@@ -189,9 +196,9 @@ int main( int argc, char *argv[] ) {
 				add_correction( (phi_old + level_ind[l]), (phi_corr + level_ind[l]), nn[l] );
 	
 				//	Post-smoothing phi_old
-				relaxation( (phi_old + level_ind[l]), (rho + level_ind[l]), nn[l], error_criterion, 1, 1, 1 );
+				relaxation( (phi_old + level_ind[l]), (rho + level_ind[l]), nn[l], conv_loop, 1, 1, 1 );
 
-				//	Prolongate the phi_old, which is phi_corr in former level
+				//	Prolongate the phi_old, which is phi_corr in previous level
 				prolongation( (phi_old + level_ind[l]), nn[l], (phi_corr + level_ind[l-1]) );	
 				printf("Up-sample to previous level.\n");
 			}
@@ -201,7 +208,7 @@ int main( int argc, char *argv[] ) {
 			add_correction( (phi_old + level_ind[0]), (phi_corr + level_ind[0]), nn[0] );
 
 			//	Post-smoothing phi_old in finest level
-			relaxation( (phi_old + level_ind[0]), (rho + level_ind[0]), nn[0], error_criterion, 1, 1, 0 );
+			relaxation( (phi_old + level_ind[0]), (rho + level_ind[0]), nn[0], conv_loop, 1, 1, 0 );
 			//	Compute error
 			//print( potential, N );
 			relative_error( (phi_old + level_ind[0]), analytic, nn[0], error_rel );
@@ -209,23 +216,25 @@ int main( int argc, char *argv[] ) {
 		}
 		free(nn);
 		free(level_ind);
-		free(residual);
 		free(phi_old);
 		free(phi_corr);
+		free(residual);
+		free(rho);
 
 	}
-
-/*
-	else if (cycle_type==4){
-		for(int times=0;times<1;times++){
-			double *error_ = (double *)malloc(sizeof(double));
-		}
+//	SOR
+	else if (cycle_type==4) {
+		float omega = 1.5;
+		printf("\nSOR:\nOmega = %f \nConv_precision = %e \nMethod = Even-Odd \n", omega, *conv_precision);	
+		relaxation( potential, density, N, conv_precision, sor_method, omega, 0 );
+		relative_error( potential, analytic, N, error_rel );
 	}
-*/
+
+	free(conv_loop);
+	free(conv_precision);
 	free(analytic);
 	free(potential);
 	free(density);
-	free(error_criterion);
 	free(error_rel);
 	return EXIT_SUCCESS;
 }

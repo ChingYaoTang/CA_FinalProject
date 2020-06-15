@@ -36,6 +36,6 @@ void restriction( double *matrix_f, int n_f, double *matrix_c ) {
 		matrix_c[ind(i_c, n_c-1, n_c)] = matrix_f[ind(i_f, n_f-1, n_f)];
 	}
 
-	printf("[N_f = %d => N_c = %d] Finish restriction. \n", n_f, n_c);
+	printf("[N_f = %3d -> N_c = %3d] Finish restriction. \n", n_f, n_c);
 	
 }

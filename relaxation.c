@@ -8,9 +8,9 @@
 extern const float L;
 
 // arguments: (1)phi matirx, (2)rho matrix, (3)size of the matrix,(4)convergence criterion, 
-// 	      (5)updating method: 1="normal", 2="even odd", (6)omega for SOR (should be 1 for smoothing => GS), 
+// 	      (5)updating method: 1="normal", 0="even odd", (6)omega for SOR (should be 1 for smoothing => GS), 
 // 	      (7)which equation are we dealing with: 0 for Poisson eq., 1 for residual eq. 
-void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, int method, float omega, bool w ) {
+void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, bool method, float omega, bool w ) {
 	double h = L/(n-1);
 	double *itera = (double *)malloc( sizeof(double) );
 	*itera = 0;
@@ -49,7 +49,7 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 				*error += fabs( ( phi_guess[ind(i, j, n)] - phi_old[ind(i, j, n)] ) / phi_old[ind(i, j, n)] );
 			}
 		}
-	} else if( method==2 ) {
+	} else if( method==0 ) {
 		while( *condition1 > *condition2 ) {
 //		while( *error>conv_criteria ) {
 //		while( *itera<conv_criteria ) {
@@ -88,7 +88,7 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 //		}
 		}
 	}
-	printf( "[N = %d             ] Finish relaxation. Total iteration = %g, final conv error = %e\n", n, *itera, *error);
+	printf( "[N = %3d               ] Finish relaxation. Total iteration = %g, final conv error = %e\n", n, *itera, *error);
 	free( phi_old );
 	free( error );
 	free( itera );

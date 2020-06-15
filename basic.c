@@ -27,7 +27,7 @@ void add_correction( double *phi_old, double *phi_corr, int n  ) {
 	for( j=0; j<n; j++) {
 		phi_old[ind(i, j, n)] += phi_corr[ind(i, j, n)];
 	}
-	printf("[N = %d             ] Finish correction addition.\n", n);
+	printf("[N = %3d               ] Finish correction addition.\n", n);
 }
 
 void test_prol_rest( const int N ) {
