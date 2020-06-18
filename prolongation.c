@@ -3,6 +3,7 @@
 #include <cstring>
 #include <math.h>
 #define PI acos(-1)
+#include "main.h"
 #include "basic.h"
 #include "time.h"
 
@@ -15,16 +16,26 @@ void prolongation( double *matrix_c, int n_c, double *matrix_f) {
 	clock_t t;
 	t = clock();
 //	Copy the points with factor 1 to the fine matrix
+#ifdef OPENMP
+#pragma omp parallel for collapse( 2 )
+#endif
 	for( i_f=0, i_c=0; i_f<n_f; i_f+=2, i_c++ )
 	for( j_f=0, j_c=0; j_f<n_f; j_f+=2, j_c++ ) {
 		matrix_f[ind(i_f, j_f, n_f)] = matrix_c[ind(i_c, j_c, n_c)];
 	}
+#ifdef OPENMP
+#pragma omp parallel for collapse( 2 )
+#endif
 //	Compute the rest points
 //	Compute even row
 	for( i_f=0; i_f<n_f; i_f+=2 )
 	for( j_f=1; j_f<n_f-1; j_f+=2 ) {
 		matrix_f[ind(i_f, j_f, n_f)] = ( matrix_f[ind(i_f, j_f+1, n_f)] + matrix_f[ind(i_f, j_f-1, n_f)] )/2;
 	}
+#ifdef OPENMP
+#pragma omp parallel for collapse( 2 )
+#endif
+
 //	Compute odd row
 	for( i_f=1; i_f<n_f-1; i_f+=2 )
 	for( j_f=0; j_f<n_f; j_f++ ) {

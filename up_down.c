@@ -10,6 +10,7 @@
 #include "prolongation.h"
 #include "exact_im.h"
 #include "basic.h"
+#include "time.h"
 
 extern cal_fn exact_solver;
 
@@ -38,10 +39,12 @@ void down( double *phi, double *rho, int pulse_level, int final_level, int *nn, 
 	}
 	printf("----------------------------------------------------------------------------------------------------\n                                                Level:%d\n", final_level-1);
 	printf("Reach the final level (Coarsest level).\n");
-
+	clock_t t_exact;
+	t_exact = clock();
 	//	Solve exact solution in coarsest level
 	choose_solver( exact_solver, (phi + level_ind[final_level-1]), (rho + level_ind[final_level-1]), nn[final_level-1], conv_precision, 1, 1 );
-	printf("Up-sample to previous level.\n");
+	t_exact = clock()-t_exact;
+	printf("Using %.3f sec. Up-sample to previous level.\n",t_exact/(double)CLOCKS_PER_SEC);
 }
 
 //	up-sample without an exact solver

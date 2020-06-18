@@ -5,7 +5,7 @@
 #define PI acos(-1)
 #include "prolongation.h"
 #include "restriction.h"
-
+#define OPENMP
 
 //	define the calculation function type for exact solvers
 typedef void (*cal_fn)( double*, double*, int, double*, float, bool );

@@ -17,12 +17,13 @@
 #include "exact_im.h"
 #include "up_down.h"
 #include "time.h"
+#include "main.h"
 
 //	Set the basic parameters
 const float  L                = 1; 	    	// Boxsize in the solver
 const int    N                = 17;              // Number of the resolution
 const double dx               = L/(N-1);	// Spatial interval 
-const int    cycle_num        = 5;		// Number of cylces
+const int    cycle_num        = 1;		// Number of cylces
 int          cycle_type       = 2;		// 1:two grid, 2:V cycle, 3:W cycle, 4:SOR
 int          final_level      = 2;		// Final level of V cycle or W cycle
 bool         sor_method       = 0;		// 0:even-odd, 1:normal
@@ -33,6 +34,9 @@ cal_fn       exact_solver     = relaxation;	// function name of the exact solver
 //main function
 int main( int argc, char *argv[] ) {
 //	test_prol_rest(N);	
+#ifdef OPENMP
+	printf("Using openmp\n");
+#endif
 
 	double *conv_loop        = (double *)malloc( sizeof(double) );		// Criterion for the smoothing
 	*conv_loop               = 10;

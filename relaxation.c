@@ -2,10 +2,12 @@
 #include <cstdlib>
 #include <cstring>
 #include <math.h>
+#include "time.h"
 #include "basic.h"
+#include "main.h"
 #include "relative_error.h"
 #define PI acos(-1)
-#define OPENMP
+//#define OPENMP
 extern const float L;
 extern bool sor_method; 
 
@@ -16,6 +18,8 @@ extern bool sor_method;
 
 
 void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, float omega, bool w ) {
+	clock_t tr;
+	tr	= clock();
 //	Determine the physical grid size
 	double h = L/(n-1);
 //	Two end criteria for relaxation
@@ -91,8 +95,9 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 
 		}
 	}
+	tr = clock()-tr;
 	if( *conv_criterion>1.0 ) {
-		printf( "[N = %3d               ] Finish relaxation. Total iteration = %g, final conv error = %e\n", n, *itera, *error);
+		printf( "[N = %3d               ] Finish relaxation. Total iteration = %g, final conv error = %e (%.3f sec)\n", n, *itera, *error, tr/(double)CLOCKS_PER_SEC);
 	} else {
 		printf("Exact solver by relaxation terminated. Total iteration = %g, final conv error = %e\n", *itera, *error);
 	}
