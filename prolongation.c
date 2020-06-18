@@ -29,7 +29,4 @@ void prolongation( double *matrix_c, int n_c, double *matrix_f) {
 	}
 
 	printf("[N_c = %3d -> N_f = %3d] Finish prolongation.\n", n_c, n_f);
-
-	printf("Finish prolongation from N_c = %d to N_f = %d \n", n_c, n_f);
-
 }

@@ -38,8 +38,4 @@ void restriction( double *matrix_f, int n_f, double *matrix_c ) {
 
 
 	printf("[N_f = %3d -> N_c = %3d] Finish restriction. \n", n_f, n_c);
-
-	printf("Finish restriction from N_f = %d to N_c = %d \n", n_f, n_c);
-
-	
 }
