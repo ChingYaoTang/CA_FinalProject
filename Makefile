@@ -1,7 +1,7 @@
 TARGET	= MG_solver
-CC	= mpic++
+CC	= g++  -fopenmp
 CFLAGS	= -o
-OBJ	= main.o init_sin.o basic.o restriction.o prolongation.o cal_residual.o relaxation.o relative_error.o exact_im.o up_down.o
+OBJ	= main.o init_sin.o basic.o prolongation.o restriction.o cal_residual.o relaxation.o relative_error.o exact_im.o up_down.o
 RM	= rm -f
 
 $(TARGET):$(OBJ)
@@ -10,11 +10,11 @@ main.o:main.c
 	$(CC) $(CFLAGS) $@ -c $^
 init_sin.o:init_sin.c
 	$(CC) $(CFLAGS) $@ -c $^
-restriction.o:restriction.c
-	$(CC) $(CFLAGS) $@ -c $^
 basic.o:basic.c
 	$(CC) $(CFLAGS) $@ -c $^
 prolongation.o:prolongation.c
+	$(CC) $(CFLAGS) $@ -c $^
+restriction.o:restriction.c
 	$(CC) $(CFLAGS) $@ -c $^
 cal_residual.o:cal_residual.c
 	$(CC) $(CFLAGS) $@ -c $^

@@ -14,14 +14,15 @@
 #include "exact_im.h"
 #include "up_down.h"
 #include "time.h"
+#include "omp.h"
 
 //	Set the basic parameters
 const float  L                = 1; 	    	// Boxsize in the solver
-const int    N                = 17;              // Number of the resolution
+const int    N                = 2049;              // Number of the resolution
 const double dx               = L/(N-1);	// Spatial interval 
 const int    cycle_num        = 1;		// Number of cylces
 int          cycle_type       = 2;		// 1:two grid, 2:V cycle, 3:W cycle, 4:SOR
-int          final_level      = 2;		// Final level of V cycle or W cycle
+int          final_level      = 3;		// Final level of V cycle or W cycle
 bool         sor_method       = 0;		// 0:even-odd, 1:normal
 float        omega            = 1.5;
 cal_fn       exact_solver     = relaxation;	// function name of the exact solver
@@ -50,9 +51,9 @@ int main( int argc, char *argv[] ) {
 	const double ky         = PI/L;
 	init_sin( analytic, potential, density, kx, ky, bc );
 	printf("Using sin test problem, N=%d\n",N);
-	clock_t t;
+	double t;
 	
-	t = clock();
+	t = omp_get_wtime();
 //	which cycle do u wanna use?
 // 	two grid
 	if (cycle_type==1) {
@@ -183,8 +184,8 @@ int main( int argc, char *argv[] ) {
 //	V cycle prototype
 	else if (cycle_type==5) {
 	}
-	t = clock()-t;
-	printf("Use %.3f sec.\n",t/(double)CLOCKS_PER_SEC);
+	t =  omp_get_wtime()-t;
+	printf("Use %.3f sec.\n",t);///(double)CLOCKS_PER_SEC);
 	free(conv_loop);
 	free(conv_precision);
 	free(analytic);

@@ -6,6 +6,7 @@
 #include "basic.h"
 #include "relative_error.h"
 #define PI acos(-1)
+#include <omp.h>
 //#define OPENMP
 extern const float L;
 extern bool sor_method; 
@@ -17,8 +18,8 @@ extern bool sor_method;
 
 
 void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, float omega, bool w ) {
-	clock_t tr;
-	tr	= clock();
+	double tr;
+	tr	= omp_get_wtime();
 //	Determine the physical grid size
 	double h = L/(n-1);
 //	Two end criteria for relaxation
@@ -65,10 +66,11 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 			memcpy( phi_old, phi_guess, n*n*sizeof(double) );
 //      	        update odd part
 #ifdef OPENMP
-#pragma omp parallel for collapse( 2 )
+#pragma omp parallel for //collapse( 2 )
 #endif
 			for( int i=1; i<(n-1); i++ )
-			for( int j=( i%2 ) ? 1: 2; j<(n-1); j+=2 ) {
+			for( int j=1; j<(n/2+1); j++ ) {
+				j = (j+i%2)*2;
 				phi_guess[ind(i, j, n)] += omega/4 * ( phi_guess[ind(i+1, j, n)]
 				    			             + phi_guess[ind(i-1, j, n)]
 							             + phi_guess[ind(i, j+1, n)]
@@ -78,11 +80,13 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 				*error += fabs( ( phi_guess[ind(i, j, n)] - phi_old[ind(i, j, n)] ) / phi_old[ind(i, j, n)] );
 			}
 #ifdef OPENMP
-#pragma omp parallel for collapse( 2 )
+#pragma omp barrier
+#pragma omp parallel for //collapse( 2 )
 #endif
 //			update even part
 			for( int i=1; i<(n-1); i++ )
-			for( int j=( i%2 ) ? 2: 1; j<(n-1); j+=2 ) {
+			for( int j=1; j<(n/2+1); j++ ) {
+				j = (j+(i+1)%2)*2;
 				phi_guess[ind(i, j, n)] += omega/4 * ( phi_guess[ind(i+1, j, n)]
 				    			             + phi_guess[ind(i-1, j, n)]
 							             + phi_guess[ind(i, j+1, n)]
@@ -94,9 +98,9 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 
 		}
 	}
-	tr = clock()-tr;
+	tr = omp_get_wtime()-tr;
 	if( *conv_criterion>1.0 ) {
-		printf( "[N = %3d               ] Finish relaxation. Total iteration = %g, final conv error = %e (%.3f sec)\n", n, *itera, *error, tr/(double)CLOCKS_PER_SEC);
+		printf( "[N = %3d               ] Finish relaxation. Total iteration = %g, final conv error = %e (%.3f sec)\n", n, *itera, *error, tr);///(double)CLOCKS_PER_SEC);
 	} else {
 		printf("Exact solver by relaxation terminated. Total iteration = %g, final conv error = %e\n", *itera, *error);
 	}
