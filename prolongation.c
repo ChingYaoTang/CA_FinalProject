@@ -4,6 +4,7 @@
 #include <math.h>
 #define PI acos(-1)
 #include "basic.h"
+#include "time.h"
 
 // Input the coarse gird matrix and calculate the corresponding fine grid matrix by bilinear operator
 
@@ -11,6 +12,8 @@
 void prolongation( double *matrix_c, int n_c, double *matrix_f) {
 	int n_f = 2*n_c-1;
 	int i_c, j_c, i_f, j_f;
+	clock_t t;
+	t = clock();
 //	Copy the points with factor 1 to the fine matrix
 	for( i_f=0, i_c=0; i_f<n_f; i_f+=2, i_c++ )
 	for( j_f=0, j_c=0; j_f<n_f; j_f+=2, j_c++ ) {
@@ -27,6 +30,7 @@ void prolongation( double *matrix_c, int n_c, double *matrix_f) {
 	for( j_f=0; j_f<n_f; j_f++ ) {
 		matrix_f[ind(i_f, j_f, n_f)] = ( matrix_f[ind(i_f+1, j_f, n_f)] + matrix_f[ind(i_f-1, j_f, n_f)] )/2;
 	}
+	t = clock()-t;
 
 	printf("[N_c = %3d -> N_f = %3d] Finish prolongation.\n", n_c, n_f);
 }
