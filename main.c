@@ -19,10 +19,10 @@
 
 //	Set the basic parameters
 const float  L                = 1; 	    	// Boxsize in the solver
-const int    N                = 257;              // Number of the resolution
+const int    N                = 129;              // Number of the resolution
 const double dx               = L/(N-1);	// Spatial interval 
 const int    cycle_num        = 5;		// Number of cylces
-int          cycle_type       = 3;		// 1:two grid, 2:V cycle, 3:W cycle, 4:SOR
+int          cycle_type       = 2;		// 1:two grid, 2:V cycle, 3:W cycle, 4:SOR
 int          final_level      = 7;		// Final level of V cycle or W cycle
 bool         sor_method       = 1;		// 0:even-odd, 1:normal
 float        omega            = 1.5;
