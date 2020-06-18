@@ -33,6 +33,7 @@ double det(double *matrix, int m){
         D += sign*matrix[ind(0,f,m)]*det(comx,m-1);
         sign =-sign;
     }
+    free(comx);
     return D;
 }
 
@@ -50,12 +51,13 @@ void inversematrix(double *matrix, int n, double *invmx){
             invmx[ind(i,j,n)]=sign*det(comx,n-1)/det(matrix,n);         
         }
     }
+    free(comx);
 }
 
 //main function
 extern const int N;
 extern const double dx;
-void exact_im(double *residual, int n, double *phi_corr){
+void exact_im( double *phi_corr, double *residual, int n, double *conv_criterion, float omega, bool w ) {
     //convert Laplacian(phi_corr)=-residual to Au=b 
     //where u and b are vectors of dimension = (n-2)^2 
     const int n_ext = pow(n - 2, 2);
@@ -112,4 +114,9 @@ void exact_im(double *residual, int n, double *phi_corr){
                 phi_corr[ind(i,j,n)]=phi_corr_nb[ind(i-1,j-1,n-2)];
         }
     }
+    free(A);
+    free(b);
+    free(invmx_A);
+    free(phi_corr_nb);
+    printf("Exact solver by inverse matrix terminated\n");
 }

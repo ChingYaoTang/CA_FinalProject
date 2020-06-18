@@ -15,7 +15,6 @@ void init_sin( double *analytic, double *potential, double *density, const doubl
 			density[ind( i, j, N )]  = -( pow(kx,2) + pow(ky,2) ) * ( analytic[ind( i, j, N )] - bc );
 			if( i==0 || j==0 || i==(N-1) || j==(N-1)) potential[ind( i, j, N )] = bc;
 			else potential[ind( i, j, N )] = bc;
-		//	potential[ind( i, j, N )] = 0.3 * sin( kx*i*dx ) * sin( ky*j*dx ) + bc;
 		}
 	}
 }
