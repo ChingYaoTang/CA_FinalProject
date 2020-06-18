@@ -33,7 +33,6 @@ void cal_residual( double *phi_guess, double *rho, double *residual, int n, bool
 	}
 
 	printf("[N = %3d               ] Finish residual calculation.\n", n);
-=======
 	printf("Finish residual calculation with N = %d.\n", n);
 
 }
