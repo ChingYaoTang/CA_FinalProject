@@ -6,14 +6,6 @@
 #include "prolongation.h"
 #include "restriction.h"
 
-
-//	define the calculation function type for exact solvers
-typedef void (*cal_fn)( double*, double*, int, double*, float, bool );
-void choose_solver( cal_fn solver_name, double *phi, double *rho, int nn, double *conv_precision, float omega, bool w ) {
-	solver_name( phi, rho, nn, conv_precision, omega, w );
-	}
-
-
 //	1D index of the matrix element
 int ind( int i, int j, int NGrid ) {
 	return i * NGrid + j;

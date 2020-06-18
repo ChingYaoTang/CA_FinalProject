@@ -71,7 +71,7 @@ int main( int argc, char *argv[] ) {
 
 			//	Solve exact solution of phi_corr_2h
 			double *phi_corr_2h = (double *)malloc( (N+1)/2 * (N+1)/2 * sizeof(double) );
-			exact_im( phi_corr_2h, residual_2h, (N+1)/2, conv_precision, omega, 1 );
+			exact_solver( phi_corr_2h, residual_2h, (N+1)/2, conv_precision, omega, 1 );
 			//print( phi_corr_2h, (N+1)/2 );
 
 			//	Prolongate the phi_corr_2h to phi_corr_h
