@@ -31,6 +31,9 @@ void cal_residual( double *phi_guess, double *rho, double *residual, int n, bool
 	for( int i=0; i<n; i++ ) {
 		residual[ind(i, 0, n)] = residual[ind(i, n-1, n)] = residual[ind(0, i, n)] = residual[ind(n-1, i, n)] = 0.0;
 	}
+
 	printf("[N = %3d               ] Finish residual calculation.\n", n);
-//	print(residual,n);
+=======
+	printf("Finish residual calculation with N = %d.\n", n);
+
 }

@@ -27,5 +27,9 @@ void prolongation( double *matrix_c, int n_c, double *matrix_f) {
 	for( j_f=0; j_f<n_f; j_f++ ) {
 		matrix_f[ind(i_f, j_f, n_f)] = ( matrix_f[ind(i_f+1, j_f, n_f)] + matrix_f[ind(i_f-1, j_f, n_f)] )/2;
 	}
+
 	printf("[N_c = %3d -> N_f = %3d] Finish prolongation.\n", n_c, n_f);
+
+	printf("Finish prolongation from N_c = %d to N_f = %d \n", n_c, n_f);
+
 }
