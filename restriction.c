@@ -5,7 +5,6 @@
 #define PI acos(-1)
 #include "basic.h"
 #include "time.h"
-#include "main.h"
 
 // Input the fine gird matrix and calculate the corresponding coarse grid matrix by full weighting operator
 

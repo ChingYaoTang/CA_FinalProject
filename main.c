@@ -5,19 +5,15 @@
 #include <math.h>
 #define PI acos(-1)
 #include "init_sin.h"			
-//usage:( analytic, potential, density, a, b, c)
 #include "restriction.h"
 #include "prolongation.h"
 #include "basic.h"
 #include "cal_residual.h"
 #include "relaxation.h"			
-//usage:( potential, density, size of matrix, spatial interval,convergence criteria, omega of SOR)
 #include "relative_error.h"
-//usage:double value of error = ((1)experimental value, (2)theoretical value, (3)matrix size)
 #include "exact_im.h"
 #include "up_down.h"
 #include "time.h"
-#include "main.h"
 
 //	Set the basic parameters
 const float  L                = 1; 	    	// Boxsize in the solver

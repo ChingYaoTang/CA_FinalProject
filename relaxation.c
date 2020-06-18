@@ -4,7 +4,6 @@
 #include <math.h>
 #include "time.h"
 #include "basic.h"
-#include "main.h"
 #include "relative_error.h"
 #define PI acos(-1)
 //#define OPENMP

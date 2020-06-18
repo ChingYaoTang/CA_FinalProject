@@ -3,7 +3,6 @@
 #include <cstring>
 #include <math.h>
 #define PI acos(-1)
-#include "main.h"
 #include "basic.h"
 #include "time.h"
 
