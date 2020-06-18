@@ -57,7 +57,7 @@ void inversematrix(double *matrix, int n, double *invmx){
 //main function
 extern const int N;
 extern const double dx;
-void exact_im(double *residual, int n, double *phi_corr){
+void exact_im( double *phi_corr, double *residual, int n, double *conv_criterion, float omega, bool w ) {
     //convert Laplacian(phi_corr)=-residual to Au=b 
     //where u and b are vectors of dimension = (n-2)^2 
     const int n_ext = pow(n - 2, 2);
@@ -118,5 +118,5 @@ void exact_im(double *residual, int n, double *phi_corr){
     free(b);
     free(invmx_A);
     free(phi_corr_nb);
-    printf("exact solver terminated\n");
+    printf("Exact solver by inverse matrix terminated\n");
 }

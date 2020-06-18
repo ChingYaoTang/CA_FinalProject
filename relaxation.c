@@ -6,20 +6,26 @@
 #include "relative_error.h"
 #define PI acos(-1)
 extern const float L;
+extern bool sor_method; 
+
 
 // arguments: (1)phi matirx, (2)rho matrix, (3)size of the matrix,(4)convergence criterion, 
 // 	      (5)updating method: 1="normal", 0="even odd", (6)omega for SOR (should be 1 for smoothing => GS), 
 // 	      (7)which equation are we dealing with: 0 for Poisson eq., 1 for residual eq. 
-void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, bool method, float omega, bool w ) {
+
+
+void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, float omega, bool w ) {
+//	Determine the physical grid size
 	double h = L/(n-1);
+//	Two end criteria for relaxation
 	double *itera = (double *)malloc( sizeof(double) );
 	*itera = 0;
 	double *error = (double *)malloc( sizeof(double) );
 	*error = 1;
-
+//	Store the primitive input to make the comparison with the up-to-date result
 	double *phi_old = (double *)malloc( n*n*sizeof(double) );
 
-//	Set the convergence criterion
+//	Set the end criterion
 	double *condition1;
 	double *condition2;
 	if( *conv_criterion<1.0 ) {
@@ -30,7 +36,7 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 		condition2 = itera;
 	}
 
-	if( method==1 ) {
+	if( sor_method==1 ) {
 		while( *condition1 > *condition2 ) {
 //		while( *error>*conv_criterion ) {
 //		while( *itera<*conv_criterion ) {
@@ -49,7 +55,7 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 				*error += fabs( ( phi_guess[ind(i, j, n)] - phi_old[ind(i, j, n)] ) / phi_old[ind(i, j, n)] );
 			}
 		}
-	} else if( method==0 ) {
+	} else if( sor_method==0 ) {
 		while( *condition1 > *condition2 ) {
 //		while( *error>conv_criteria ) {
 //		while( *itera<conv_criteria ) {
@@ -88,7 +94,12 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 //		}
 		}
 	}
-	printf( "[N = %3d               ] Finish relaxation. Total iteration = %g, final conv error = %e\n", n, *itera, *error);
+	if( *conv_criterion>1.0 ) {
+		printf( "[N = %3d               ] Finish relaxation. Total iteration = %g, final conv error = %e\n", n, *itera, *error);
+	} else {
+		printf("Exact solver by relaxation terminated. Total iteration = %g, final conv error = %e\n", *itera, *error);
+	}
+
 	free( phi_old );
 	free( error );
 	free( itera );

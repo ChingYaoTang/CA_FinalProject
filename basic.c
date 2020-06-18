@@ -6,11 +6,21 @@
 #include "prolongation.h"
 #include "restriction.h"
 
+
+//	define the calculation function type for exact solvers
+typedef void (*cal_fn)( double*, double*, int, double*, float, bool );
+void choose_solver( cal_fn solver_name, double *phi, double *rho, int nn, double *conv_precision, float omega, bool w ) {
+	solver_name( phi, rho, nn, conv_precision, omega, w );
+	}
+
+
+//	1D index of the matrix element
 int ind( int i, int j, int NGrid ) {
 	return i * NGrid + j;
 }
 
 
+//	print out the matrix 
 void print( double *matrix, int n) {
     for( int i=0; i<n; i++ ) {
         for( int j=0; j<n; j++ ) {
@@ -21,6 +31,8 @@ void print( double *matrix, int n) {
     }
 }
 
+
+//	add the correction to phi_odd
 void add_correction( double *phi_old, double *phi_corr, int n  ) {
 	int i, j;
 	for( i=0; i<n; i++)
@@ -29,6 +41,7 @@ void add_correction( double *phi_old, double *phi_corr, int n  ) {
 	}
 	printf("[N = %3d               ] Finish correction addition.\n", n);
 }
+
 
 void test_prol_rest( const int N ) {
 	printf( "test restriction\n" );
