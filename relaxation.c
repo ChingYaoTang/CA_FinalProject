@@ -5,6 +5,7 @@
 #include "basic.h"
 #include "relative_error.h"
 #define PI acos(-1)
+#define OPENMP
 extern const float L;
 extern bool sor_method; 
 
@@ -38,8 +39,6 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 
 	if( sor_method==1 ) {
 		while( *condition1 > *condition2 ) {
-//		while( *error>*conv_criterion ) {
-//		while( *itera<*conv_criterion ) {
 			*itera += 1;
 			*error = 0;
 //		       	copy old potential
@@ -57,13 +56,14 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 		}
 	} else if( sor_method==0 ) {
 		while( *condition1 > *condition2 ) {
-//		while( *error>conv_criteria ) {
-//		while( *itera<conv_criteria ) {
 			*itera += 1;
 			*error = 0;
 //	       		copy old potential
 			memcpy( phi_old, phi_guess, n*n*sizeof(double) );
 //      	        update odd part
+#ifdef OPENMP
+#pragma omp parallel for collapse( 2 )
+#endif
 			for( int i=1; i<(n-1); i++ )
 			for( int j=( i%2 ) ? 1: 2; j<(n-1); j+=2 ) {
 				phi_guess[ind(i, j, n)] += omega/4 * ( phi_guess[ind(i+1, j, n)]
@@ -74,6 +74,9 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 						        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
 				*error += fabs( ( phi_guess[ind(i, j, n)] - phi_old[ind(i, j, n)] ) / phi_old[ind(i, j, n)] );
 			}
+#ifdef OPENMP
+#pragma omp parallel for collapse( 2 )
+#endif
 //			update even part
 			for( int i=1; i<(n-1); i++ )
 			for( int j=( i%2 ) ? 2: 1; j<(n-1); j+=2 ) {
@@ -86,12 +89,6 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 				*error += fabs( ( phi_guess[ind(i, j, n)] - phi_old[ind(i, j, n)] ) / phi_old[ind(i, j, n)] );
 			}
 
-//		relative_error( phi_guess, phi_old, n, error);
-//		if(itera%100==1) {
-//			printf("error in while = %g\n", *error);
-//			print( phi_guess, n );
-//			print( phi_old , n );
-//		}
 		}
 	}
 	if( *conv_criterion>1.0 ) {

@@ -16,15 +16,16 @@
 //usage:double value of error = ((1)experimental value, (2)theoretical value, (3)matrix size)
 #include "exact_im.h"
 #include "up_down.h"
+#include "time.h"
 
 //	Set the basic parameters
 const float  L                = 1; 	    	// Boxsize in the solver
-const int    N                = 257;              // Number of the resolution
+const int    N                = 17;              // Number of the resolution
 const double dx               = L/(N-1);	// Spatial interval 
 const int    cycle_num        = 5;		// Number of cylces
-int          cycle_type       = 3;		// 1:two grid, 2:V cycle, 3:W cycle, 4:SOR
-int          final_level      = 7;		// Final level of V cycle or W cycle
-bool         sor_method       = 1;		// 0:even-odd, 1:normal
+int          cycle_type       = 2;		// 1:two grid, 2:V cycle, 3:W cycle, 4:SOR
+int          final_level      = 2;		// Final level of V cycle or W cycle
+bool         sor_method       = 0;		// 0:even-odd, 1:normal
 float        omega            = 1.5;
 cal_fn       exact_solver     = relaxation;	// function name of the exact solver
 
@@ -36,7 +37,7 @@ int main( int argc, char *argv[] ) {
 	double *conv_loop        = (double *)malloc( sizeof(double) );		// Criterion for the smoothing
 	*conv_loop               = 10;
 	double *conv_precision   = (double *)malloc( sizeof(double) );		// Criterion for exact relaxation solver
-	*conv_precision          = 1e-14;
+	*conv_precision          = 1e-10;
 
 	double *analytic         = (double *)malloc( N * N * sizeof(double) );	// analytic potential matrix
 	double *potential        = (double *)malloc( N * N * sizeof(double) );	// potential matrix of initial guess
@@ -48,8 +49,10 @@ int main( int argc, char *argv[] ) {
 	const double kx         = PI/L;
 	const double ky         = PI/L;
 	init_sin( analytic, potential, density, kx, ky, bc );
-	//print( analytic, N );
-
+	printf("Using sin test problem, N=%d\n",N);
+	clock_t t;
+	
+	t = clock();
 //	which cycle do u wanna use?
 // 	two grid
 	if (cycle_type==1) {
@@ -97,7 +100,8 @@ int main( int argc, char *argv[] ) {
 
 //	V cycle 
 	else if (cycle_type==2) {
-		int tot_length = 0;
+		//	calculate the required amount of memory
+		int tot_length = 0;	// total required amount of memory
 		int *nn        = (int *)malloc( final_level * sizeof(int));
 		int *level_ind = (int *)malloc( final_level * sizeof(int));
 		int m          = N;
@@ -120,9 +124,7 @@ int main( int argc, char *argv[] ) {
 			up(phi,rho, final_level, 0, nn, level_ind, conv_loop);
 			
 			//	Compute error
-			//	print( potential, N );
 			relative_error( (phi + level_ind[0]), analytic, nn[0], error_rel );
-			
 		}
 		free(nn);
 		free(level_ind);
@@ -173,7 +175,7 @@ int main( int argc, char *argv[] ) {
 
 //	SOR
 	else if (cycle_type==4) {
-		printf("\nSOR:\nOmega = %f \nConv_precision = %e \n", omega, *conv_precision);	
+		printf("SOR:\nOmega = %f \nConv_precision = %e \n", omega, *conv_precision);	
 		relaxation( potential, density, N, conv_precision, omega, 0 );
 		relative_error( potential, analytic, N, error_rel );
 	}
@@ -181,7 +183,8 @@ int main( int argc, char *argv[] ) {
 //	V cycle prototype
 	else if (cycle_type==5) {
 	}
-
+	t = clock()-t;
+	printf("Use %.3f sec.\n",t/(double)CLOCKS_PER_SEC);
 	free(conv_loop);
 	free(conv_precision);
 	free(analytic);

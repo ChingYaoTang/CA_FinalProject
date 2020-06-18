@@ -32,5 +32,5 @@ void prolongation( double *matrix_c, int n_c, double *matrix_f) {
 	}
 	t = clock()-t;
 
-	printf("[N_c = %3d -> N_f = %3d] Finish prolongation.\n", n_c, n_f);
+	printf("[N_c = %3d -> N_f = %3d] Finish prolongation.(Use %.3f sec)\n", n_c, n_f,t/(double)CLOCKS_PER_SEC);
 }
