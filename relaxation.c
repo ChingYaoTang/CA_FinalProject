@@ -64,7 +64,13 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 			is = 1;
 			for( int oe=1; oe<=2; oe++ ) {
 				js = is;
+#ifdef OPENMP
+#pragma omp parallel for
+#endif
 				for( int i=1; i<(n-1); i++ ) {
+//#ifdef OPENMP
+//#pragma omp parallel for
+//#endif
 					for( int j=js; j<(n-1); j+=2 ) {
 						phi_guess[ind(i, j, n)] += omega/4 * ( phi_guess[ind(i+1, j, n)]
 				    				             	+ phi_guess[ind(i-1, j, n)]

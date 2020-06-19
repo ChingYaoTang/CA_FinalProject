@@ -16,10 +16,10 @@ void prolongation( double *matrix_c, int n_c, double *matrix_f) {
 	t = omp_get_wtime();
 //	Copy the points with factor 1 to the fine matrix
 #ifdef OPENMP
-#pragma omp parallel for collapse(2)
+#pragma omp parallel for collapse(2) private( i_c,j_c )
 #endif
-	for(int i_f=0; i_f<n_f; i_f+=2 ) 
-	for(int j_f=0; j_f<n_f; j_f+=2 ) {
+	for( i_f=0; i_f<n_f; i_f+=2 ) 
+	for( j_f=0; j_f<n_f; j_f+=2 ) {
 		i_c = i_f/2;
 		j_c = j_f/2;
 		matrix_f[ind(i_f, j_f, n_f)] = matrix_c[ind(i_c, j_c, n_c)];
