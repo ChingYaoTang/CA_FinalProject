@@ -2,12 +2,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <math.h>
-#include "time.h"
 #include "basic.h"
 #include "relative_error.h"
 #define PI acos(-1)
-#include <omp.h>
-//#define OPENMP
 extern const float L;
 extern bool sor_method; 
 
@@ -18,8 +15,6 @@ extern bool sor_method;
 
 
 void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, float omega, bool w ) {
-	double tr;
-	tr	= omp_get_wtime();
 //	Determine the physical grid size
 	double h = L/(n-1);
 //	Two end criteria for relaxation
@@ -59,48 +54,40 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 			}
 		}
 	} else if( sor_method==0 ) {
+ 	     	int is, js;
 		while( *condition1 > *condition2 ) {
 			*itera += 1;
 			*error = 0;
 //	       		copy old potential
 			memcpy( phi_old, phi_guess, n*n*sizeof(double) );
-//      	        update odd part
-#ifdef OPENMP
-#pragma omp parallel for //collapse( 2 )
-#endif
-			for( int i=1; i<(n-1); i++ )
-			for( int j=1; j<(n/2+1); j++ ) {
-				j = (j+i%2)*2;
-				phi_guess[ind(i, j, n)] += omega/4 * ( phi_guess[ind(i+1, j, n)]
-				    			             + phi_guess[ind(i-1, j, n)]
-							             + phi_guess[ind(i, j+1, n)]
-							             + phi_guess[ind(i, j-1, n)]
-							             - phi_guess[ind(i, j, n)]*4
-						        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
-				*error += fabs( ( phi_guess[ind(i, j, n)] - phi_old[ind(i, j, n)] ) / phi_old[ind(i, j, n)] );
+//      	        update by odd-even
+			is = 1;
+			for( int oe=1; oe<=2; oe++ ) {
+				js = is;
+				for( int i=1; i<(n-1); i++ ) {
+					for( int j=js; j<(n-1); j+=2 ) {
+						phi_guess[ind(i, j, n)] += omega/4 * ( phi_guess[ind(i+1, j, n)]
+				    				             	+ phi_guess[ind(i-1, j, n)]
+								        	     + phi_guess[ind(i, j+1, n)]
+									             + phi_guess[ind(i, j-1, n)]
+									             - phi_guess[ind(i, j, n)]*4
+								        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
+						*error += fabs( ( phi_guess[ind(i, j, n)] - phi_old[ind(i, j, n)] ) / phi_old[ind(i, j, n)] );
+					}
+					js = 3-js;
+				}
+				is = 3-is;
 			}
-#ifdef OPENMP
-#pragma omp barrier
-#pragma omp parallel for //collapse( 2 )
-#endif
-//			update even part
-			for( int i=1; i<(n-1); i++ )
-			for( int j=1; j<(n/2+1); j++ ) {
-				j = (j+(i+1)%2)*2;
-				phi_guess[ind(i, j, n)] += omega/4 * ( phi_guess[ind(i+1, j, n)]
-				    			             + phi_guess[ind(i-1, j, n)]
-							             + phi_guess[ind(i, j+1, n)]
-							             + phi_guess[ind(i, j-1, n)]
-							             - phi_guess[ind(i, j, n)]*4
-						        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
-				*error += fabs( ( phi_guess[ind(i, j, n)] - phi_old[ind(i, j, n)] ) / phi_old[ind(i, j, n)] );
-			}
-
+//		relative_error( phi_guess, phi_old, n, error);
+//		if(itera%100==1) {
+//			printf("error in while = %g\n", *error);
+//			print( phi_guess, n );
+//			print( phi_old , n );
+//		}
 		}
 	}
-	tr = omp_get_wtime()-tr;
 	if( *conv_criterion>1.0 ) {
-		printf( "[N = %3d               ] Finish relaxation. Total iteration = %g, final conv error = %e (%.3f sec)\n", n, *itera, *error, tr);///(double)CLOCKS_PER_SEC);
+		printf( "[N = %3d               ] Finish relaxation. Total iteration = %g, final conv error = %e\n", n, *itera, *error);
 	} else {
 		printf("Exact solver by relaxation terminated. Total iteration = %g, final conv error = %e\n", *itera, *error);
 	}
