@@ -12,11 +12,13 @@
 void restriction( double *matrix_f, int n_f, double *matrix_c ) {
 	double tr;
 	tr = omp_get_wtime();
+
 	int n_c = (n_f+1)/2;
 	int i_c, j_c, i_f, j_f;
+	
 //	Interior points
 #ifdef OPENMP
-#pragma omp for collapse( 2 )
+#pragma omp parallel for collapse( 2 ) private( i_f,j_f,i_c,j_c )
 #endif
 	for(int i_c=1; i_c<n_c; i_c++ )
 	for(int j_c=1; j_c<n_c; j_c++ ) {
@@ -32,19 +34,21 @@ void restriction( double *matrix_f, int n_f, double *matrix_c ) {
 			 	                 + matrix_f[ind(i_f+1, j_f-1, n_f)]
 				                 + matrix_f[ind(i_f-1, j_f+1, n_f)] )/16;
 	}
+
 //	Boundary points
 //	Up & down boundaries
 #ifdef OPENMP
-#pragma omp for
+#pragma omp parallel for private( j_f,j_c )
 #endif
 	for(int j_c=0; j_c<n_c; j_c++ ) {
 		j_f = j_c*2;
 		matrix_c[ind(0, j_c, n_c)]     = matrix_f[ind(0, j_f, n_f)];
 		matrix_c[ind(n_c-1, j_c, n_c)] = matrix_f[ind(n_f-1, j_f, n_f)];
 	}
+
 //	Left & right boundaries
 #ifdef OPENMP
-#pragma omp parallel for 
+#pragma omp parallel for private( i_f,i_c )
 #endif
 	for(int i_c=0; i_c<n_c; i_c++  ) {
 		i_f = i_c*2;

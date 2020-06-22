@@ -65,7 +65,7 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 			for( int oe=1; oe<=2; oe++ ) {
 				js = is;
 #ifdef OPENMP
-#pragma omp parallel for
+#pragma omp parallel for private( js )
 #endif
 				for( int i=1; i<(n-1); i++ ) {
 //#ifdef OPENMP
@@ -78,13 +78,13 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 									             + phi_guess[ind(i, j-1, n)]
 									             - phi_guess[ind(i, j, n)]*4
 								        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
-						*error += fabs( ( phi_guess[ind(i, j, n)] - phi_old[ind(i, j, n)] ) / phi_old[ind(i, j, n)] );
+//						*error += fabs( ( phi_guess[ind(i, j, n)] - phi_old[ind(i, j, n)] ) / phi_old[ind(i, j, n)] );
 					}
 					js = 3-js;
 				}
 				is = 3-is;
 			}
-//		relative_error( phi_guess, phi_old, n, error);
+			relative_error( phi_guess, phi_old, n, error);
 //		if(itera%100==1) {
 //			printf("error in while = %g\n", *error);
 //			print( phi_guess, n );

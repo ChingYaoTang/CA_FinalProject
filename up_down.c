@@ -42,7 +42,7 @@ void down( double *phi, double *rho, int pulse_level, int final_level, int *nn, 
 	double t_exact;
 	t_exact = omp_get_wtime();
 	//	Solve exact solution in coarsest level
-	choose_solver( exact_solver, (phi + level_ind[final_level-1]), (rho + level_ind[final_level-1]), nn[final_level-1], conv_precision, 1, 1 );
+	exact_solver( (phi + level_ind[final_level-1]), (rho + level_ind[final_level-1]), nn[final_level-1], conv_precision, 1, 1 );
 	t_exact = omp_get_wtime()-t_exact;
 	printf("Using %.3f sec. Up-sample to previous level.\n",t_exact);///(double)CLOCKS_PER_SEC);
 }

@@ -4,6 +4,7 @@
 #include <math.h>
 #define PI acos(-1)
 #include "basic.h"
+extern const int N;
 
 // arguments: (1)experimental value, (2)theoretical value, (3)matrix size
 void relative_error( double *expe, double *theo, int n, double *error ) {
@@ -13,5 +14,5 @@ void relative_error( double *expe, double *theo, int n, double *error ) {
 		*error += fabs( ( expe[ind(i, j, n)] - theo[ind(i, j, n)] ) / theo[ind(i, j, n)] );
 	}
 	*error /= pow(n,2);
-	printf("Relative error = %g\n", *error);
+	if( n==N ) printf("Relative error = %g\n", *error);
 }
