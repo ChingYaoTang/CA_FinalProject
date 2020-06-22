@@ -2,12 +2,10 @@
 #include <cstdlib>
 #include <cstring>
 #include <math.h>
-#include "time.h"
 #include "basic.h"
 #include "relative_error.h"
-#define PI acos(-1)
 #include <omp.h>
-//#define OPENMP
+
 extern const float L;
 extern bool sor_method; 
 
@@ -16,17 +14,19 @@ extern bool sor_method;
 // 	      (5)updating method: 1="normal", 0="even odd", (6)omega for SOR (should be 1 for smoothing => GS), 
 // 	      (7)which equation are we dealing with: 0 for Poisson eq., 1 for residual eq. 
 
-
 void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, float omega, bool w ) {
 	double tr;
 	tr	= omp_get_wtime();
+
 //	Determine the physical grid size
 	double h = L/(n-1);
+
 //	Two end criteria for relaxation
 	double *itera = (double *)malloc( sizeof(double) );
 	*itera = 0;
 	double *error = (double *)malloc( sizeof(double) );
 	*error = 1;
+
 //	Store the primitive input to make the comparison with the up-to-date result
 	double *phi_old = (double *)malloc( n*n*sizeof(double) );
 
@@ -41,6 +41,7 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 		condition2 = itera;
 	}
 
+//	Relaxation
 	if( sor_method==1 ) {
 		while( *condition1 > *condition2 ) {
 			*itera += 1;
@@ -69,8 +70,7 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 #pragma omp parallel for
 #endif
 			for( int i=1; i<(n-1); i++ )
-			for( int j=1; j<(n/2+1); j++ ) {
-				j = (j+i%2)*2;
+			for( int j=( i%2 ) ? 1: 2; j<(n-1); j+=2 ) {
 				phi_guess[ind(i, j, n)] += omega/4 * ( phi_guess[ind(i+1, j, n)]
 				    			             + phi_guess[ind(i-1, j, n)]
 							             + phi_guess[ind(i, j+1, n)]
@@ -80,13 +80,11 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 //				*error += fabs( ( phi_guess[ind(i, j, n)] - phi_old[ind(i, j, n)] ) / phi_old[ind(i, j, n)] );
 			}
 #ifdef OPENMP
-#pragma omp barrier
 #pragma omp parallel for
 #endif
 //			update even part
 			for( int i=1; i<(n-1); i++ )
-			for( int j=1; j<(n/2+1); j++ ) {
-				j = (j+(i+1)%2)*2;
+			for( int j=( i%2 ) ? 2: 1; j<(n-1); j+=2 ) {
 				phi_guess[ind(i, j, n)] += omega/4 * ( phi_guess[ind(i+1, j, n)]
 				    			             + phi_guess[ind(i-1, j, n)]
 							             + phi_guess[ind(i, j+1, n)]
@@ -101,7 +99,7 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 	}
 	tr = omp_get_wtime()-tr;
 	if( *conv_criterion>1.0 ) {
-		printf( "[N = %3d               ] Finish relaxation. Total iteration = %g, final conv error = %e (%.3f sec)\n", n, *itera, *error, tr);///(double)CLOCKS_PER_SEC);
+		printf( "[N = %3d               ] Finish relaxation. Total iteration = %g, final conv error = %e (Duration = %.3f sec)\n", n, *itera, *error, tr);
 	} else {
 		printf("Exact solver by relaxation terminated. Total iteration = %g, final conv error = %e\n", *itera, *error);
 	}
