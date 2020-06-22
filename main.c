@@ -19,10 +19,10 @@
 
 //	Set the basic parameters
 const float  L                = 1; 	    	// Boxsize in the solver
-const int    N                = 257;              // Number of the resolution
+const int    N                = 2049;              // Number of the resolution
 const double dx               = L/(N-1);	// Spatial interval 
-const int    cycle_num        = 5;		// Number of cylces
-int          cycle_type       = 3;		// 1:two grid, 2:V cycle, 3:W cycle, 4:SOR
+const int    cycle_num        = 1;		// Number of cylces
+int          cycle_type       = 2;		// 1:two grid, 2:V cycle, 3:W cycle, 4:SOR
 int          final_level      = 7;		// Final level of V cycle or W cycle
 bool         sor_method       = 0;		// 0:even-odd, 1:normal
 float        omega            = 1.5;
@@ -36,7 +36,7 @@ int main( int argc, char *argv[] ) {
 	double *conv_loop        = (double *)malloc( sizeof(double) );		// Criterion for the smoothing
 	*conv_loop               = 10;
 	double *conv_precision   = (double *)malloc( sizeof(double) );		// Criterion for exact relaxation solver
-	*conv_precision          = 1e-14;
+	*conv_precision          = 1e-10;
 
 	double *analytic         = (double *)malloc( N * N * sizeof(double) );	// analytic potential matrix
 	double *potential        = (double *)malloc( N * N * sizeof(double) );	// potential matrix of initial guess
