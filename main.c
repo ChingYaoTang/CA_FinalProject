@@ -23,7 +23,7 @@ const double dx               = L/(N-1);	// Spatial interval
 const int    cycle_num        = 1;		// Number of cylces
 int          cycle_type       = 2;		// 1:two grid, 2:V cycle, 3:W cycle, 4:SOR
 int          final_level      = 7;		// Final level of V cycle or W cycle
-bool         sor_method       = 0;		// 0:even-odd, 1:normal
+bool         sor_method       = 1;		// 0:even-odd, 1:normal
 float        omega            = 1.5;
 cal_fn       exact_solver     = relaxation;	// function name of the exact solver
 
