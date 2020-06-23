@@ -17,4 +17,5 @@ void init_sin( double *analytic, double *potential, double *density, const doubl
 			else potential[ind( i, j, N )] = bc;
 		}
 	}
+	printf("Using sin test problem, N=%d\n",N);
 }

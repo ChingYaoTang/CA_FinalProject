@@ -2,6 +2,8 @@
 #define BASIC_H
 
 #define OPENMP
+#define PARALLEL_FOR
+
 int ind( int i, int j, int n);
 void print( double *matric, int n);
 void add_correction( double *phi_old, double *phi_corr, int n );

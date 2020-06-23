@@ -2,11 +2,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <math.h>
-#define PI acos(-1)
 #include "prolongation.h"
 #include "restriction.h"
-#define OPENMP
-
+#include "basic.h"
 
 
 //	1D index of the matrix element
@@ -30,11 +28,19 @@ void print( double *matrix, int n) {
 //	add the correction to phi_odd
 void add_correction( double *phi_old, double *phi_corr, int n  ) {
 	int i, j;
+
+#	ifdef OPENMP
+#	pragma omp parallel for collapse(2) private( i,j )
+#	endif
 	for( i=0; i<n; i++)
 	for( j=0; j<n; j++) {
 		phi_old[ind(i, j, n)] += phi_corr[ind(i, j, n)];
 	}
+
+#	ifdef DEBUG
 	printf("[N = %3d               ] Finish correction addition.\n", n);
+#	endif
+
 }
 
 

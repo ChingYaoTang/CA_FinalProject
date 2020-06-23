@@ -66,8 +66,8 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 //	       		copy old potential
 			memcpy( phi_old, phi_guess, n*n*sizeof(double) );
 
+#ifdef PARALLEL_SECTION
 //      	        update odd part
-#ifdef OPENMP
 			omp_set_nested(1);
 #			pragma omp parallel num_threads(2)
 			{
@@ -76,7 +76,6 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 #				pragma omp section
 				{
 #				pragma omp parallel for collapse(2)
-#endif
 				for( int i=1; i<(n-1); i+=2 )
 				for( int j=1; j<(n-1); j+=2 ) {
 					phi_guess[ind(i, j, n)] += omega/4 * ( phi_guess[ind(i+1, j, n)]
@@ -86,12 +85,10 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 								             - phi_guess[ind(i, j, n)]*4
 							        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
 				}
-#ifdef OPENMP
 				}
 #				pragma omp section
 				{
 #				pragma omp parallel for collapse(2)
-#endif
 				for( int i=2; i<(n-1); i+=2 )
 				for( int j=2; j<(n-1); j+=2 ) {
 					phi_guess[ind(i, j, n)] += omega/4 * ( phi_guess[ind(i+1, j, n)]
@@ -101,16 +98,13 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 								             - phi_guess[ind(i, j, n)]*4
 							        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
 				}
-#ifdef OPENMP
 				}
 
 
 			}
 			}
-#endif
 
 //			update even part
-#ifdef OPENMP
 #			pragma omp parallel num_threads(2)
 			{
 #			pragma omp sections
@@ -118,7 +112,6 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 #				pragma omp section
 				{
 #				pragma omp parallel for collapse(2)
-#endif
 				for( int i=1; i<(n-1); i+=2 )
 				for( int j=2; j<(n-1); j+=2 ) {
 					phi_guess[ind(i, j, n)] += omega/4 * ( phi_guess[ind(i+1, j, n)]
@@ -128,12 +121,10 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 								             - phi_guess[ind(i, j, n)]*4
 							        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
 				}
-#ifdef OPENMP
 				}
 #				pragma omp section
 				{
 #				pragma omp parallel for collapse(2)
-#endif
 				for( int i=2; i<(n-1); i+=2 )
 				for( int j=1; j<(n-1); j+=2 ) {
 					phi_guess[ind(i, j, n)] += omega/4 * ( phi_guess[ind(i+1, j, n)]
@@ -143,20 +134,73 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 								             - phi_guess[ind(i, j, n)]*4
 							        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
 				}
-#ifdef OPENMP
 				}
 
 
 			}
 			}
 #endif
-			
+
+
+#ifdef PARALLEL_FOR
+#pragma omp parallel for
+//			update odd part
+			for( int i=1; i<(n-1); i++ )
+ 			for( int j=( i%2 + (i+1)%2*2 ); j<(n-1); j+=2 ) {
+ 				phi_guess[ind(i, j, n)] += omega/4 * ( phi_guess[ind(i+1, j, n)]
+ 				    			             + phi_guess[ind(i-1, j, n)]
+ 							             + phi_guess[ind(i, j+1, n)]
+ 							             + phi_guess[ind(i, j-1, n)]
+ 							             - phi_guess[ind(i, j, n)]*4
+ 						        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
+ 			}
+#pragma omp parallel for
+//			update even part
+ 			for( int i=1; i<(n-1); i++ )
+ 			for( int j=( (i+1)%2 + i%2*2 ); j<(n-1); j+=2 ) {
+ 				phi_guess[ind(i, j, n)] += omega/4 * ( phi_guess[ind(i+1, j, n)]
+ 				    			             + phi_guess[ind(i-1, j, n)]
+ 							             + phi_guess[ind(i, j+1, n)]
+ 							             + phi_guess[ind(i, j-1, n)]
+ 							             - phi_guess[ind(i, j, n)]*4
+ 						        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
+ 			}	
+#endif
+
+
+#ifdef NOOMP
+//			update odd part
+			for( int i=1; i<(n-1); i++ )
+ 			for( int j=( i%2 + (i+1)%2*2 ); j<(n-1); j+=2 ) {
+ 				phi_guess[ind(i, j, n)] += omega/4 * ( phi_guess[ind(i+1, j, n)]
+ 				    			             + phi_guess[ind(i-1, j, n)]
+ 							             + phi_guess[ind(i, j+1, n)]
+ 							             + phi_guess[ind(i, j-1, n)]
+ 							             - phi_guess[ind(i, j, n)]*4
+ 						        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
+ 			}
+//			update even part
+ 			for( int i=1; i<(n-1); i++ )
+ 			for( int j=( (i+1)%2 + i%2*2 ); j<(n-1); j+=2 ) {
+ 				phi_guess[ind(i, j, n)] += omega/4 * ( phi_guess[ind(i+1, j, n)]
+ 				    			             + phi_guess[ind(i-1, j, n)]
+ 							             + phi_guess[ind(i, j+1, n)]
+ 							             + phi_guess[ind(i, j-1, n)]
+ 							             - phi_guess[ind(i, j, n)]*4
+ 						        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
+ 			}
+#endif
+
 			relative_error( phi_guess, phi_old, n, error );
 		}
 	}
+	
+
 	tr = omp_get_wtime()-tr;
+	
+
 	if( *conv_criterion>1.0 ) {
-		printf( "[N = %3d               ] Finish relaxation. Total iteration = %g, final conv error = %e (Duration = %.3f sec)\n", n, *itera, *error, tr);
+		printf( "[N = %3d               ] Finish relaxation. Total iteration = %g, final conv error = %e \n(Duration = %.3f sec)\n", n, *itera, *error, tr);
 	} else {
 		printf("Exact solver by relaxation terminated. Total iteration = %g, final conv error = %e\n", *itera, *error);
 	}

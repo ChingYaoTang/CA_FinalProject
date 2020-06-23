@@ -13,8 +13,7 @@
 #include "relative_error.h"
 #include "exact_im.h"
 #include "up_down.h"
-#include "time.h"
-#include "omp.h"
+#include <omp.h>
 
 //	Set the basic parameters
 const float  L                = 1; 	    	// Boxsize in the solver
@@ -31,9 +30,6 @@ cal_fn       exact_solver     = relaxation;	// function name of the exact solver
 //main function
 int main( int argc, char *argv[] ) {
 //	test_prol_rest(N);	
-#ifdef OPENMP
-	printf("Using openmp\n");
-#endif
 
 	double *conv_loop        = (double *)malloc( sizeof(double) );		// Criterion for the smoothing
 	*conv_loop               = 10;
@@ -50,10 +46,12 @@ int main( int argc, char *argv[] ) {
 	const double kx         = PI/L;
 	const double ky         = PI/L;
 	init_sin( analytic, potential, density, kx, ky, bc );
-	printf("Using sin test problem, N=%d\n",N);
-	double t;
-	
+
+
+	double t;	
 	t = omp_get_wtime();
+
+
 //	which cycle do u wanna use?
 // 	two grid
 	if (cycle_type==1) {
@@ -126,7 +124,6 @@ int main( int argc, char *argv[] ) {
 			
 			//	Compute error
 			relative_error( (phi + level_ind[0]), analytic, nn[0], error_rel );
-			printf("Relative error = %g\n", *error_rel);
 		}
 		free(nn);
 		free(level_ind);
@@ -167,7 +164,6 @@ int main( int argc, char *argv[] ) {
 			//	Compute error
 			//	print( potential, N );
 			relative_error( (phi + level_ind[0]), analytic, nn[0], error_rel );
-			printf("Relative error = %g\n", *error_rel);
 			
 		}
 		free(nn);
@@ -183,11 +179,21 @@ int main( int argc, char *argv[] ) {
 		relative_error( potential, analytic, N, error_rel );
 	}
 
-//	V cycle prototype
+//	FMG
 	else if (cycle_type==5) {
 	}
+
+
 	t =  omp_get_wtime()-t;
-	printf("Use %.3f sec.\n",t);///(double)CLOCKS_PER_SEC);
+	printf("\nTotal duration  = %.3f sec.\n", t);
+	printf("Relative error  = %g\n", *error_rel);
+	printf("Number of cycle = %d\n", cycle_num);
+	printf("Final level     = %d\n", final_level);
+	printf("Omega           = %g\n", omega);
+#ifdef OPENMP
+	printf("Using openmp\n");
+#endif
+
 	free(conv_loop);
 	free(conv_precision);
 	free(analytic);

@@ -2,7 +2,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <math.h>
-#define PI acos(-1)
 #include "basic.h"
 #include "relaxation.h"
 #include "cal_residual.h"
@@ -10,7 +9,7 @@
 #include "prolongation.h"
 #include "exact_im.h"
 #include "basic.h"
-#include "omp.h"
+#include <omp.h>
 
 extern cal_fn exact_solver;
 
@@ -37,14 +36,19 @@ void down( double *phi, double *rho, int pulse_level, int final_level, int *nn, 
 
 		printf("Down-sample to next level.\n");
 	}
+	
 	printf("----------------------------------------------------------------------------------------------------\n                                                Level:%d\n", final_level-1);
-	printf("Reach the final level (Coarsest level).\n");
+	printf("Reach the final level N= %d (Coarsest level).\n", nn[final_level-1]);
+	
 	double t_exact;
 	t_exact = omp_get_wtime();
+	
 	//	Solve exact solution in coarsest level
 	exact_solver( (phi + level_ind[final_level-1]), (rho + level_ind[final_level-1]), nn[final_level-1], conv_precision, 1, 1 );
+	
 	t_exact = omp_get_wtime()-t_exact;
-	printf("Using %.3f sec. Up-sample to previous level.\n",t_exact);///(double)CLOCKS_PER_SEC);
+	printf("Duration of exact solver = %.3f sec. \nUp-sample to previous level.\n", t_exact);
+
 }
 
 //	up-sample without an exact solver
@@ -70,6 +74,6 @@ void up( double *phi, double *rho, int final_level, int pulse_level, int *nn, in
 	
 		//	Post-smooth the phi_old
 		relaxation( (phi + level_ind[l]), (rho + level_ind[l]), nn[l], conv_loop, 1, w );
-		if ( l!=0 ) printf("Up-sample to previous level.\n");
+		if ( l!=pulse_level ) printf("Up-sample to previous level.\n");
 	}
 }
