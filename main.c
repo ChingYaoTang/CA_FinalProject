@@ -187,9 +187,10 @@ int main( int argc, char *argv[] ) {
 	t =  omp_get_wtime()-t;
 	printf("\nTotal duration  = %.3f sec.\n", t);
 	printf("Relative error  = %g\n", *error_rel);
-	printf("Number of cycle = %d\n", cycle_num);
-	printf("Final level     = %d\n", final_level);
-	printf("Omega           = %g\n", omega);
+	if(cycle_type!=4){
+		printf("Number of cycle = %d\n", cycle_num);
+		printf("Final level     = %d\n", final_level);
+	}else if(cycle_type==4)	printf("Omega           = %g\n", omega);
 #ifdef OPENMP
 	printf("Using openmp\n");
 #endif
