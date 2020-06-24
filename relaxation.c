@@ -50,7 +50,7 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 							             + phi_guess[ind(i, j-1, n)]
 						        	     - phi_guess[ind(i, j, n)]*4
 						        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
-				*error += fabs( ( phi_guess[ind(i, j, n)] - phi_old[ind(i, j, n)] ) / phi_old[ind(i, j, n)] );
+				*error += fabs( ( phi_guess[ind(i, j, n)] - phi_old[ind(i, j, n)] ) / phi_old[ind(i, j, n)] )/pow(n,2);
 			}
 		}
 	} else if( sor_method==0 ) {
@@ -72,7 +72,7 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 									             + phi_guess[ind(i, j-1, n)]
 									             - phi_guess[ind(i, j, n)]*4
 								        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
-						*error += fabs( ( phi_guess[ind(i, j, n)] - phi_old[ind(i, j, n)] ) / phi_old[ind(i, j, n)] );
+						*error += fabs( ( phi_guess[ind(i, j, n)] - phi_old[ind(i, j, n)] ) / phi_old[ind(i, j, n)] )/pow(n,2);
 					}
 					js = 3-js;
 				}

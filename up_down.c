@@ -40,7 +40,6 @@ void down( double *phi, double *rho, int pulse_level, int final_level, int *nn, 
 	printf("Reach the final level (Coarsest level).\n");
 
 	//	Solve exact solution in coarsest level
-//	choose_solver( exact_solver, (phi + level_ind[final_level-1]), (rho + level_ind[final_level-1]), nn[final_level-1], conv_precision, 1, 1 );
 	exact_solver( (phi + level_ind[final_level-1]), (rho + level_ind[final_level-1]), nn[final_level-1], conv_precision, 1, 1 );
 
 	printf("Up-sample to previous level.\n");
@@ -67,8 +66,10 @@ void up( double *phi, double *rho, int final_level, int pulse_level, int *nn, in
 		add_correction( (phi + level_ind[l]), (phi_corr), nn[l] );
 		free(phi_corr);
 	
-		//	Post-smooth the phi_old
-		relaxation( (phi + level_ind[l]), (rho + level_ind[l]), nn[l], conv_loop, 1, w );
-		if ( l!=0 ) printf("Up-sample to previous level.\n");
+		if ( l!=pulse_level || l==0 ) {
+			//	Post-smooth the phi_old
+			relaxation( (phi + level_ind[l]), (rho + level_ind[l]), nn[l], conv_loop, 1, w );
+			printf("Up-sample to previous level.\n");
+		}
 	}
 }
