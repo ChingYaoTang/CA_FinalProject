@@ -34,6 +34,9 @@ void down( double *phi, double *rho, int pulse_level, int final_level, int *nn, 
 		restriction( (residual), nn[l], (rho + level_ind[l+1]) );
 		free(residual);
 
+		//	Fill zeros in phi_old in next level
+		fill_zero( (phi + level_ind[l+1]), nn[l+1] );
+
 		printf("Down-sample to next level.\n");
 	}
 	
@@ -77,3 +80,26 @@ void up( double *phi, double *rho, int final_level, int pulse_level, int *nn, in
 		if ( l!=pulse_level ) printf("Up-sample to previous level.\n");
 	}
 }
+/*
+void W_cycle( double *phi, double *rho, int *nn, int *level_ind, int l, double *conv_loop ) {	
+	bool w;
+
+
+	//	Pre-smooth
+	relaxation( (phi + level_ind[l]), (rho + level_ind[l]), nn[l], conv_loop, 1, w );	
+
+	//	Calculate the residual
+	double *residual = (double *)malloc( pow(nn[l],2) * sizeof(double) );
+	cal_residual( (phi + level_ind[l]), (rho + level_ind[l]), (residual), nn[l], w );
+
+	//	Restrict the residual, which is rho in next level
+	restriction( (residual), nn[l], (rho + level_ind[l+1]) );
+	free(residual);
+
+
+
+
+	
+}
+*/
+

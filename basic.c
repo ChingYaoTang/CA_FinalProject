@@ -44,6 +44,21 @@ void add_correction( double *phi_old, double *phi_corr, int n  ) {
 }
 
 
+//	fill zeros in phi_guess
+void fill_zero( double *phi_guess, int n  ) {
+	int i, j;
+
+#	ifdef OPENMP
+#	pragma omp parallel for collapse(2) private( i,j )
+#	endif
+	for( i=0; i<n; i++)
+	for( j=0; j<n; j++) {
+		phi_guess[ind(i, j, n)] = 0.0;
+	}
+
+}
+
+
 void test_prol_rest( const int N ) {
 	printf( "test restriction\n" );
 	double *phi_corr_h_ = (double *)malloc( N * N * sizeof(double) );
