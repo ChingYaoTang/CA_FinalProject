@@ -3,6 +3,7 @@
 
 #define OPENMP
 #define PARALLEL_FOR
+#define DEBUG
 
 int ind( int i, int j, int n);
 void print( double *matric, int n);

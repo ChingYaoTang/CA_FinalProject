@@ -73,17 +73,23 @@ void up( double *phi, double *rho, int final_level, int pulse_level, int *nn, in
 
 		//	Update the phi_old of this level
 		add_correction( (phi + level_ind[l]), (phi_corr), nn[l] );
-		free(phi_corr);
-	
-		//	Post-smooth the phi_old
-		relaxation( (phi + level_ind[l]), (rho + level_ind[l]), nn[l], conv_loop, 1, w );
-		if ( l!=pulse_level ) printf("Up-sample to previous level.\n");
+		free(phi_corr);	
+		
+
+		if ( l!=pulse_level || l==0 ) {
+			//	Post-smooth the phi_old
+			relaxation( (phi + level_ind[l]), (rho + level_ind[l]), nn[l], conv_loop, 1, w );
+			printf("Up-sample to previous level.\n");
+		}  
+		
+
 	}
 }
-/*
-void W_cycle( double *phi, double *rho, int *nn, int *level_ind, int l, double *conv_loop ) {	
-	bool w;
 
+void W_cycle( double *phi, double *rho, int l, int final_level, int *nn, int *level_ind, double *conv_loop, double *conv_precision ) {	
+	bool w;
+	w=1;
+	if( l==0 ) w=0 ;
 
 	//	Pre-smooth
 	relaxation( (phi + level_ind[l]), (rho + level_ind[l]), nn[l], conv_loop, 1, w );	
@@ -94,12 +100,51 @@ void W_cycle( double *phi, double *rho, int *nn, int *level_ind, int l, double *
 
 	//	Restrict the residual, which is rho in next level
 	restriction( (residual), nn[l], (rho + level_ind[l+1]) );
+
+	//	Fill zeros in phi_old in next level
+	fill_zero( (phi + level_ind[l+1]), nn[l+1] );
+
+
+	if( l+1!=final_level-1 )
+		W_cycle( phi, rho, l+1, final_level, nn, level_ind, conv_loop, conv_precision );
+	else 
+		exact_solver( (phi + level_ind[final_level-1]), (rho + level_ind[final_level-1]), nn[final_level-1], conv_precision, 1, 1 );
+
+	
+	//	Prolongate the phi_old from previous level, which is phi_corr in this level
+	double *phi_corr = (double *)malloc( pow(nn[l],2) * sizeof(double) );
+	prolongation( (phi + level_ind[l+1]), nn[l+1], (phi_corr) );	
+
+	//	Update the phi_old of this level
+	add_correction( (phi + level_ind[l]), (phi_corr), nn[l] );
+
+	//	Re-smooth
+	relaxation( (phi + level_ind[l]), (rho + level_ind[l]), nn[l], conv_loop, 1, w );	
+	
+	//	Calculate the residual
+	cal_residual( (phi + level_ind[l]), (rho + level_ind[l]), (residual), nn[l], w );
+
+	//	Restrict the residual, which is rho in next level
+	restriction( (residual), nn[l], (rho + level_ind[l+1]) );
 	free(residual);
 
 
-
+	if( l+1!=final_level-1 )
+		W_cycle( phi, rho, l+1, final_level, nn, level_ind, conv_loop, conv_precision );
+	else 
+		exact_solver( (phi + level_ind[final_level-1]), (rho + level_ind[final_level-1]), nn[final_level-1], conv_precision, 1, 1 );
 
 	
+	//	Prolongate the phi_old from previous level, which is phi_corr in this level
+	prolongation( (phi + level_ind[l+1]), nn[l+1], (phi_corr) );	
+
+	//	Update the phi_old of this level
+	add_correction( (phi + level_ind[l]), (phi_corr), nn[l] );
+	free(phi_corr);
+	
+	//	Post-smooth
+	relaxation( (phi + level_ind[l]), (rho + level_ind[l]), nn[l], conv_loop, 1, w );
+
 }
-*/
+
 
