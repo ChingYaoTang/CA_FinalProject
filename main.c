@@ -19,8 +19,8 @@
 const float  L                = 1; 	    	// Boxsize in the solver
 const int    N                = 65;              // Number of the resolution
 const double dx               = L/(N-1);	// Spatial interval 
-const int    cycle_num        = 2;		// Number of cylces
-const int    cycle_type       = 3;		// 1:two grid, 2:V cycle, 3:W cycle, 4:W cycle, 5:SOR, 6:FMG
+const int    cycle_num        = 1;		// Number of cylces
+const int    cycle_type       = 6;		// 1:two grid, 2:V cycle, 3:W cycle, 4:W cycle, 5:SOR, 6:FMG
 const int    final_level      = 4;		// Final level of V cycle or W cycle
 const bool   sor_method       = 0;		// 0:even-odd, 1:normal
 const float  omega_sor        = 1;
@@ -242,7 +242,7 @@ int main( int argc, char *argv[] ) {
 		memcpy( (rho + level_ind[0]), density, pow(nn[0],2) * sizeof(double) );
 		for( int i=1; i<final_level; i++ ) {
 			fill_zero( (phi + level_ind[i]), nn[i] );
-			//	Obtain rho of Poisson equation of all levels
+			//	Obtain rho of Poisson equation on all levels
 			init_sin_rho( (rho + level_ind[i]), kx, ky, bc, nn[i] );
 		}
 
@@ -252,9 +252,10 @@ int main( int argc, char *argv[] ) {
 		printf("----------------------------------------------------------------------------------------------------\n                                                Level:%d \n(Solve exact solution of Poisson equation on coarsest level)\n", final_level-1);
 		exact_solver( (phi + level_ind[final_level-1]), (rho + level_ind[final_level-1]), nn[final_level-1], conv_precision, omega_sor, 0 );
 
+//		Nested iteration
 		for( int i=final_level-2; i>=0; i-- ) {
 			//	Prolongate the solution on coarser level i+1 to next finer level i
-			printf("----------------------------------------------------------------------------------------------------\n                                                Level:%d \nProlongate solution to finer level as approximate solution on such level\n", i+1);
+			printf("\n----------------------------------------------------------------------------------------------------\n                                           Level:%d -> Level:%d \nProlongate solution to finer level as approximate solution on such level\n", i+1, i);
 			prolongation( (phi + level_ind[i+1]), nn[i+1], (phi + level_ind[i]));
 
 			//	Copy rho of Poisson equation to rhs
@@ -269,7 +270,6 @@ int main( int argc, char *argv[] ) {
 					//	First level of downward processes is dealing with Poisson equation
 					if( ll==i ) w = 0;
 					down_1step( phi, rhs, ll, nn, level_ind, conv_loop, w );
-					printf("ll = %d\n", ll);
 				}
 				//	Apply exact solver to residual equation on coarsest level 
 				printf("----------------------------------------------------------------------------------------------------\n                                                Level:%d \n(Solve exact solution of residual equation on coarsest level)\n", final_level-1);
@@ -280,9 +280,10 @@ int main( int argc, char *argv[] ) {
 					//	Last level of upward processes is dealing with Poisson equation
 					if( ll==i ) w = 0;	
 					up_1step( phi, rhs, ll, nn, level_ind, conv_loop, w );
-					printf("ll = %d\n", ll);
 				}
+				printf("\nFinish V cycle No.%d on level %d\n", vcycle+1, i);
 			}
+			printf("\nFinish V cycle on level %d\n", i);
 		} //	Reach the finest level
 
 
