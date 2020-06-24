@@ -11,6 +11,7 @@
 #include "basic.h"
 #include <omp.h>
 
+extern const float omega_sor;
 extern cal_fn exact_solver;
 
 //	down-sample with an exact solver
@@ -45,7 +46,7 @@ void down( double *phi, double *rho, int pulse_level, int final_level, int *nn, 
 	t_exact = omp_get_wtime();
 	
 	//	Solve exact solution in coarsest level
-	exact_solver( (phi + level_ind[final_level-1]), (rho + level_ind[final_level-1]), nn[final_level-1], conv_precision, 1, 1 );
+	exact_solver( (phi + level_ind[final_level-1]), (rho + level_ind[final_level-1]), nn[final_level-1], conv_precision, omega_sor, 1 );
 	
 	t_exact = omp_get_wtime()-t_exact;
 	printf("Duration of exact solver = %.3f sec. \nUp-sample to previous level.\n", t_exact);
@@ -109,7 +110,7 @@ void W_cycle( double *phi, double *rho, int l, int final_level, int *nn, int *le
 	}
 	else {
 		printf("----------------------------------------------------------------------------------------------------\n                                                Final Level:%d\n", l+1);
-		exact_solver( (phi + level_ind[final_level-1]), (rho + level_ind[final_level-1]), nn[final_level-1], conv_precision, 1, 1 );
+		exact_solver( (phi + level_ind[final_level-1]), (rho + level_ind[final_level-1]), nn[final_level-1], conv_precision, omega_sor, 1 );
 	}
 	
 
@@ -136,7 +137,7 @@ void W_cycle( double *phi, double *rho, int l, int final_level, int *nn, int *le
 		W_cycle( phi, rho, l+1, final_level, nn, level_ind, conv_loop, conv_precision );
 	} else { 
 		printf("----------------------------------------------------------------------------------------------------\n                                                Final Level:%d\n", l+1);
-		exact_solver( (phi + level_ind[final_level-1]), (rho + level_ind[final_level-1]), nn[final_level-1], conv_precision, 1, 1 );
+		exact_solver( (phi + level_ind[final_level-1]), (rho + level_ind[final_level-1]), nn[final_level-1], conv_precision, omega_sor, 1 );
 	}
 	
 	printf("----------------------------------------------------------------------------------------------------\n                                                Level:%d\n", l);
@@ -152,7 +153,7 @@ void W_cycle( double *phi, double *rho, int l, int final_level, int *nn, int *le
 
 }
 
-//	Down 1 step from l
+//	Down 1 step from level l
 void down_1step( double *phi, double *rhs, int l, int *nn, int *level_ind, double *conv_loop, bool w ) {
 	printf("----------------------------------------------------------------------------------------------------\n                                                Level:%d\n", l);
 

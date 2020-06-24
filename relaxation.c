@@ -7,7 +7,7 @@
 #include <omp.h>
 
 extern const float L;
-extern bool sor_method; 
+extern const bool sor_method; 
 
 
 // arguments: (1)phi matirx, (2)rho matrix, (3)size of the matrix,(4)convergence criterion, 

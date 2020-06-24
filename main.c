@@ -4,7 +4,7 @@
 #include <cstring>
 #include <math.h>
 #define PI acos(-1)
-#include "init_sin.h"			
+#include "init.h"			
 #include "restriction.h"
 #include "prolongation.h"
 #include "basic.h"
@@ -19,11 +19,11 @@
 const float  L                = 1; 	    	// Boxsize in the solver
 const int    N                = 65;              // Number of the resolution
 const double dx               = L/(N-1);	// Spatial interval 
-const int    cycle_num        = 1;		// Number of cylces
-int          cycle_type       = 6;		// 1:two grid, 2:V cycle, 3:W cycle, 4:W cycle, 5:SOR, 6:FMG
-int          final_level      = 4;		// Final level of V cycle or W cycle
-bool         sor_method       = 0;		// 0:even-odd, 1:normal
-float        omega            = 1;
+const int    cycle_num        = 2;		// Number of cylces
+const int    cycle_type       = 3;		// 1:two grid, 2:V cycle, 3:W cycle, 4:W cycle, 5:SOR, 6:FMG
+const int    final_level      = 4;		// Final level of V cycle or W cycle
+const bool   sor_method       = 0;		// 0:even-odd, 1:normal
+const float  omega_sor        = 1;
 cal_fn       exact_solver     = relaxation;	// function name of the exact solver
 const int    ncycle	      = 2;
 
@@ -73,7 +73,7 @@ int main( int argc, char *argv[] ) {
 
 			//	Solve exact solution of phi_corr_2h
 			double *phi_corr_2h = (double *)malloc( (N+1)/2 * (N+1)/2 * sizeof(double) );
-			exact_im( phi_corr_2h, residual_2h, (N+1)/2, conv_precision, omega, 1 );
+			exact_im( phi_corr_2h, residual_2h, (N+1)/2, conv_precision, omega_sor, 1 );
 			//print( phi_corr_2h, (N+1)/2 );
 
 			//	Prolongate the phi_corr_2h to phi_corr_h
@@ -218,8 +218,8 @@ int main( int argc, char *argv[] ) {
 
 //	SOR
 	else if (cycle_type==5) {
-		printf("SOR:\nOmega = %f \nConv_precision = %e \n", omega, *conv_precision);	
-		relaxation( potential, density, N, conv_precision, omega, 0 );
+		printf("SOR:\nOmega = %f \nConv_precision = %e \n", omega_sor, *conv_precision);	
+		relaxation( potential, density, N, conv_precision, omega_sor, 0 );
 		relative_error( potential, analytic, N, error_rel );
 	}
 
@@ -243,14 +243,14 @@ int main( int argc, char *argv[] ) {
 		for( int i=1; i<final_level; i++ ) {
 			fill_zero( (phi + level_ind[i]), nn[i] );
 			//	Obtain rho of Poisson equation of all levels
-			restriction( (rho + level_ind[i-1]), nn[i-1], (rho + level_ind[i]) );
+			init_sin_rho( (rho + level_ind[i]), kx, ky, bc, nn[i] );
 		}
 
 		printf("====================================================================================================\n                                             FMG with ncycle = %d\n====================================================================================================\n", ncycle);
 		
 //		Start from exact solution on coarsest level for Poisson equation
 		printf("----------------------------------------------------------------------------------------------------\n                                                Level:%d \n(Solve exact solution of Poisson equation on coarsest level)\n", final_level-1);
-		exact_solver( (phi + level_ind[final_level-1]), (rho + level_ind[final_level-1]), nn[final_level-1], conv_precision, omega, 0 );
+		exact_solver( (phi + level_ind[final_level-1]), (rho + level_ind[final_level-1]), nn[final_level-1], conv_precision, omega_sor, 0 );
 
 		for( int i=final_level-2; i>=0; i-- ) {
 			//	Prolongate the solution on coarser level i+1 to next finer level i
@@ -273,7 +273,7 @@ int main( int argc, char *argv[] ) {
 				}
 				//	Apply exact solver to residual equation on coarsest level 
 				printf("----------------------------------------------------------------------------------------------------\n                                                Level:%d \n(Solve exact solution of residual equation on coarsest level)\n", final_level-1);
-				exact_solver( (phi + level_ind[final_level-1]), (rhs + level_ind[final_level-1]), nn[final_level-1], conv_precision, omega, 1 );
+				exact_solver( (phi + level_ind[final_level-1]), (rhs + level_ind[final_level-1]), nn[final_level-1], conv_precision, omega_sor, 1 );
 				//	Up until level i
 				for( ll=final_level-1; ll>i; ll-- ) {
 					bool w = 1;
@@ -303,11 +303,11 @@ int main( int argc, char *argv[] ) {
 	printf("Number of cycle = %d\n", cycle_num);
 	printf("Type of cycle = %d\n", cycle_type);
 	printf("Final level     = %d\n", final_level);
-	printf("Omega           = %g\n", omega);
+	printf("Omega           = %g\n", omega_sor);
 //	if(cycle_type!=4){
 //		printf("Number of cycle = %d\n", cycle_num);
 //		printf("Final level     = %d\n", final_level);
-//	}else if(cycle_type==4)	printf("Omega           = %g\n", omega);
+//	}else if(cycle_type==4)	printf("Omega           = %g\n", omega_sor);
 #ifdef OPENMP
 	printf("Using openmp\n");
 #endif
