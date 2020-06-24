@@ -34,8 +34,6 @@ void down( double *phi, double *rho, int pulse_level, int final_level, int *nn, 
 		restriction( (residual), nn[l], (rho + level_ind[l+1]) );
 		free(residual);
 
-		//	Fill zeros in phi_old in next level
-		fill_zero( (phi + level_ind[l+1]), nn[l+1] );
 
 		printf("Down-sample to next level.\n");
 	}
@@ -91,6 +89,7 @@ void W_cycle( double *phi, double *rho, int l, int final_level, int *nn, int *le
 	w=1;
 	if( l==0 ) w=0 ;
 
+	printf("----------------------------------------------------------------------------------------------------\n                                                Level:%d\n", l);
 	//	Pre-smooth
 	relaxation( (phi + level_ind[l]), (rho + level_ind[l]), nn[l], conv_loop, 1, w );	
 
@@ -105,12 +104,16 @@ void W_cycle( double *phi, double *rho, int l, int final_level, int *nn, int *le
 	fill_zero( (phi + level_ind[l+1]), nn[l+1] );
 
 
-	if( l+1!=final_level-1 )
+	if( (l+1) != (final_level-1) ) {
 		W_cycle( phi, rho, l+1, final_level, nn, level_ind, conv_loop, conv_precision );
-	else 
+	}
+	else {
+		printf("----------------------------------------------------------------------------------------------------\n                                                Final Level:%d\n", l+1);
 		exact_solver( (phi + level_ind[final_level-1]), (rho + level_ind[final_level-1]), nn[final_level-1], conv_precision, 1, 1 );
-
+	}
 	
+
+	printf("----------------------------------------------------------------------------------------------------\n                                                Level:%d\n", l);
 	//	Prolongate the phi_old from previous level, which is phi_corr in this level
 	double *phi_corr = (double *)malloc( pow(nn[l],2) * sizeof(double) );
 	prolongation( (phi + level_ind[l+1]), nn[l+1], (phi_corr) );	
@@ -129,12 +132,14 @@ void W_cycle( double *phi, double *rho, int l, int final_level, int *nn, int *le
 	free(residual);
 
 
-	if( l+1!=final_level-1 )
+	if( (l+1) != (final_level-1) ) {
 		W_cycle( phi, rho, l+1, final_level, nn, level_ind, conv_loop, conv_precision );
-	else 
+	} else { 
+		printf("----------------------------------------------------------------------------------------------------\n                                                Final Level:%d\n", l+1);
 		exact_solver( (phi + level_ind[final_level-1]), (rho + level_ind[final_level-1]), nn[final_level-1], conv_precision, 1, 1 );
-
+	}
 	
+	printf("----------------------------------------------------------------------------------------------------\n                                                Level:%d\n", l);
 	//	Prolongate the phi_old from previous level, which is phi_corr in this level
 	prolongation( (phi + level_ind[l+1]), nn[l+1], (phi_corr) );	
 
@@ -147,4 +152,41 @@ void W_cycle( double *phi, double *rho, int l, int final_level, int *nn, int *le
 
 }
 
+//	Down 1 step from l
+void down_1step( double *phi, double *rhs, int l, int *nn, int *level_ind, double *conv_loop, bool w ) {
+	printf("----------------------------------------------------------------------------------------------------\n                                                Level:%d\n", l);
 
+	//	Pre-smooth the phi_old
+	relaxation( (phi + level_ind[l]), (rhs + level_ind[l]), nn[l], conv_loop, 1, w );
+
+	//	Calculate the residual
+	double *residual = (double *)malloc( pow(nn[l],2) * sizeof(double) );
+	cal_residual( (phi + level_ind[l]), (rhs + level_ind[l]), (residual), nn[l], w );
+
+	//	Restrict the residual, which is rhs in next level
+	restriction( (residual), nn[l], (rhs + level_ind[l+1]) );
+	free(residual);
+	
+	//	Fill zeros in phi_old in next level
+	fill_zero( (phi + level_ind[l+1]), nn[l+1] );
+
+	
+
+}
+//	Up 1 step from level l
+void up_1step( double *phi, double *rhs, int l, int *nn, int *level_ind, double *conv_loop, bool w ) {
+	printf("----------------------------------------------------------------------------------------------------\n                                                Level:%d\n", l);
+
+	//	Prolongate the phi_old from level l, which is phi_corr in level l-1
+	double *phi_corr = (double *)malloc( pow(nn[l-1],2) * sizeof(double) );
+	prolongation( (phi + level_ind[l]), nn[l], (phi_corr) );	
+
+	//	Update the phi_old of level l-1
+	add_correction( (phi + level_ind[l-1]), (phi_corr), nn[l-1] );
+	free(phi_corr);
+	
+
+	//	Post-smooth the phi_old
+	relaxation( (phi + level_ind[l-1]), (rhs + level_ind[l-1]), nn[l-1], conv_loop, 1, w );
+	
+}
