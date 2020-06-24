@@ -304,6 +304,10 @@ int main( int argc, char *argv[] ) {
 	printf("Type of cycle = %d\n", cycle_type);
 	printf("Final level     = %d\n", final_level);
 	printf("Omega           = %g\n", omega);
+//	if(cycle_type!=4){
+//		printf("Number of cycle = %d\n", cycle_num);
+//		printf("Final level     = %d\n", final_level);
+//	}else if(cycle_type==4)	printf("Omega           = %g\n", omega);
 #ifdef OPENMP
 	printf("Using openmp\n");
 #endif

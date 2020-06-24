@@ -2,8 +2,8 @@
 #define BASIC_H
 
 #define OPENMP
-#define PARALLEL_FOR
 #define DEBUG
+#define PARALLEL_FOR //Set the parallel method of relaxation.c
 
 int ind( int i, int j, int n);
 void print( double *matric, int n);

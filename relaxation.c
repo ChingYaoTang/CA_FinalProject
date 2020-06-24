@@ -168,7 +168,7 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 #endif
 
 
-#ifdef NOOMP
+#ifdef WO_OMP
 //			update odd part
 			for( int i=1; i<(n-1); i++ )
  			for( int j=( i%2 + (i+1)%2*2 ); j<(n-1); j+=2 ) {
@@ -188,7 +188,7 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
  							             + phi_guess[ind(i, j-1, n)]
  							             - phi_guess[ind(i, j, n)]*4
  						        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
- 			}
+ 			}	
 #endif
 
 			relative_error( phi_guess, phi_old, n, error );
