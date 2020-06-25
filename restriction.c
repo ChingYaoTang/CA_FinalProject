@@ -25,6 +25,7 @@ void restriction( double *matrix_f, int n_f, double *matrix_c ) {
 	for( j_c=1; j_c<n_c; j_c++ ) {
 		i_f = 2*i_c;
 		j_f = 2*j_c;
+#		ifdef	FULL_WEIGHTING
 		matrix_c[ind(i_c, j_c, n_c)] = matrix_f[ind(i_f, j_f, n_f)]/4
 				               + ( matrix_f[ind(i_f+1, j_f, n_f)]
 				                 + matrix_f[ind(i_f-1, j_f, n_f)]
@@ -34,51 +35,14 @@ void restriction( double *matrix_f, int n_f, double *matrix_c ) {
 		 		                 + matrix_f[ind(i_f-1, j_f-1, n_f)]
 			 	                 + matrix_f[ind(i_f+1, j_f-1, n_f)]
 				                 + matrix_f[ind(i_f-1, j_f+1, n_f)] )/16;
-	}
-
-//	Boundary points
-#	ifdef OPENMP
-#	pragma omp parallel for private( i_f )
-#	endif
-	for( i_c=0; i_c<n_c; i_c++  ) {
-		i_f = i_c*2;
-//	Up & down boundaries
-		matrix_c[ind(i_c, 0, n_c)]     = matrix_f[ind(i_f, 0, n_f)];
-		matrix_c[ind(i_c, n_c-1, n_c)] = matrix_f[ind(i_f, n_f-1, n_f)];
-		
-//	Left & right boundaries
-		matrix_c[ind(0, i_c, n_c)]     = matrix_f[ind(0, i_f, n_f)];
-		matrix_c[ind(n_c-1, i_c, n_c)] = matrix_f[ind(n_f-1, i_f, n_f)];
-	}
-
-#	ifdef DEBUG
-	tr = omp_get_wtime()-tr;
-	printf("[N_f = %3d -> N_c = %3d] Finish restriction.(Duration = %.3f sec) \n", n_f, n_c, tr);
-#	endif
-
-}
-
-void restriction_half_weighting( double *matrix_f, int n_f, double *matrix_c ) {
-#	ifdef DEBUG
-	double tr;
-	tr = omp_get_wtime();
-#	endif
-	int n_c = (n_f+1)/2;
-	int i_c, j_c, i_f, j_f;
-	
-//	Interior points
-#	ifdef OPENMP
-#	pragma omp parallel for collapse( 2 ) private( i_f, j_f )
-#	endif
-	for( i_c=1; i_c<n_c; i_c++ )
-	for( j_c=1; j_c<n_c; j_c++ ) {
-		i_f = 2*i_c;
-		j_f = 2*j_c;
+#		endif
+#		ifdef	HALF_WEIGHTING
 		matrix_c[ind(i_c, j_c, n_c)] = matrix_f[ind(i_f, j_f, n_f)]/2
 				               + ( matrix_f[ind(i_f+1, j_f, n_f)]
 				                 + matrix_f[ind(i_f-1, j_f, n_f)]
 			                         + matrix_f[ind(i_f, j_f+1, n_f)]
 				                 + matrix_f[ind(i_f, j_f-1, n_f)] )/8;
+#		endif
 	}
 
 //	Boundary points
@@ -98,7 +62,16 @@ void restriction_half_weighting( double *matrix_f, int n_f, double *matrix_c ) {
 
 #	ifdef DEBUG
 	tr = omp_get_wtime()-tr;
-	printf("[N_f = %3d -> N_c = %3d] Finish restriction.(Duration = %.3f sec) \n", n_f, n_c, tr);
+
+#	ifdef	FULL_WEIGHTING
+	printf("[N_f = %4d -> N_c = %4d] Finish full-weighting restriction.(Duration = %.3f sec) \n", n_f, n_c, tr);
+#	endif
+#	ifdef	HALF_WEIGHTING
+	printf("[N_f = %4d -> N_c = %4d] Finish half-weighting restriction.(Duration = %.3f sec) \n", n_f, n_c, tr);
+#	endif
+
 #	endif
 
 }
+
+

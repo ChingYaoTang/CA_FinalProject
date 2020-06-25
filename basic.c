@@ -38,7 +38,7 @@ void add_correction( double *phi_old, double *phi_corr, int n  ) {
 	}
 
 #	ifdef DEBUG
-	printf("[N = %3d               ] Finish correction addition.\n", n);
+	printf("[N = %4d                ] Finish correction addition.\n", n);
 #	endif
 
 }
@@ -55,6 +55,9 @@ void fill_zero( double *phi_guess, int n  ) {
 	for( j=0; j<n; j++) {
 		phi_guess[ind(i, j, n)] = 0.0;
 	}
+#	ifdef DEBUG
+	printf("[N = %4d                ] Finish fill zero.\n", n);
+#	endif
 
 }
 

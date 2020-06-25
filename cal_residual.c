@@ -41,7 +41,7 @@ void cal_residual( double *phi_guess, double *rho, double *residual, int n, bool
 	}
 
 #	ifdef DEBUG
-	printf("[N = %3d               ] Finish residual calculation.\n", n);
+	printf("[N = %4d                ] Finish residual calculation.\n", n);
 #	endif
 
 }

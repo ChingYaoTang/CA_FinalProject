@@ -16,16 +16,16 @@
 #include <omp.h>
 
 //	Set the basic parameters
-const float  L                = 1; 	    	// Boxsize in the solver
+const float  L                = 1; 	    	 // Boxsize in the solver
 const int    N                = 65;              // Number of the resolution
-const double dx               = L/(N-1);	// Spatial interval 
-const int    cycle_num        = 1;		// Number of cylces
-const int    cycle_type       = 6;		// 1:two grid, 2:V cycle, 3:W cycle, 4:W cycle, 5:SOR, 6:FMG
-const int    final_level      = 4;		// Final level of V cycle or W cycle
-const bool   sor_method       = 0;		// 0:even-odd, 1:normal
-const float  omega_sor        = 1;
-cal_fn       exact_solver     = relaxation;	// function name of the exact solver
-const int    ncycle	      = 2;
+const double dx               = L/(N-1);	 // Spatial interval 
+const int    cycle_type       = 6;		 // 1:two grid, 2:V cycle, 3:W cycle, 4:W cycle, 5:SOR, 6:FMG
+const int    cycle_num        = 1;	 	 // Number of cylces
+const int    final_level      = 4;		 // Final level of V cycle or W cycle
+const bool   sor_method       = 0;		 // 0:even-odd, 1:normal
+const float  omega_sor        = 1;		 // Omgega of SOR method (1= G-S method)
+cal_fn       exact_solver     = relaxation;	 // Function name of the exact solver
+const int    ncycle	      = 2;		 // Number of V cycle to be used in FMG
 
 //main function
 int main( int argc, char *argv[] ) {
@@ -89,6 +89,7 @@ int main( int argc, char *argv[] ) {
 			//	Compute error
 			//print( potential, N );
 			relative_error( potential, analytic, N, error_rel );
+			printf("====================================================================================================\nRelative error  = %g\n", *error_rel);
 			
 			free(residual_h);
 			free(residual_2h);
@@ -127,7 +128,7 @@ int main( int argc, char *argv[] ) {
 			
 			//	Compute error
 			relative_error( (phi + level_ind[0]), analytic, nn[0], error_rel );
-			printf("Relative error  = %g\n", *error_rel);
+			printf("====================================================================================================\nRelative error  = %g\n", *error_rel);
 		}
 		free(nn);
 		free(level_ind);
@@ -168,7 +169,7 @@ int main( int argc, char *argv[] ) {
 			//	Compute error
 			//	print( potential, N );
 			relative_error( (phi + level_ind[0]), analytic, nn[0], error_rel );
-			printf("Relative error  = %g\n", *error_rel);
+			printf("====================================================================================================\nRelative error  = %g\n", *error_rel);
 			
 		}
 		free(nn);
@@ -207,7 +208,7 @@ int main( int argc, char *argv[] ) {
 			
 			//	Compute error
 			relative_error( (phi + level_ind[0]), analytic, nn[0], error_rel );
-			printf("Relative error  = %g\n", *error_rel);
+			printf("====================================================================================================\nRelative error  = %g\n", *error_rel);
 		}
 		free(nn);
 		free(level_ind);
@@ -218,9 +219,9 @@ int main( int argc, char *argv[] ) {
 
 //	SOR
 	else if (cycle_type==5) {
-		printf("SOR:\nOmega = %f \nConv_precision = %e \n", omega_sor, *conv_precision);	
 		relaxation( potential, density, N, conv_precision, omega_sor, 0 );
 		relative_error( potential, analytic, N, error_rel );
+		printf("====================================================================================================\nRelative error  = %g\n", *error_rel);
 	}
 
 //	FMG
@@ -240,8 +241,8 @@ int main( int argc, char *argv[] ) {
 		double *rho      = (double *)malloc( tot_length * sizeof(double) );
 		double *rhs      = (double *)malloc( tot_length * sizeof(double) );
 		memcpy( (rho + level_ind[0]), density, pow(nn[0],2) * sizeof(double) );
+		fill_zero( (phi + level_ind[0]), nn[0] );
 		for( int i=1; i<final_level; i++ ) {
-			fill_zero( (phi + level_ind[i]), nn[i] );
 			//	Obtain rho of Poisson equation on all levels
 			init_sin_rho( (rho + level_ind[i]), kx, ky, bc, nn[i] );
 		}
@@ -252,36 +253,42 @@ int main( int argc, char *argv[] ) {
 		printf("----------------------------------------------------------------------------------------------------\n                                                Level:%d \n(Solve exact solution of Poisson equation on coarsest level)\n", final_level-1);
 		exact_solver( (phi + level_ind[final_level-1]), (rho + level_ind[final_level-1]), nn[final_level-1], conv_precision, omega_sor, 0 );
 
-//		Nested iteration
+//		Nested iteration from 2nd last level to finset level
 		for( int i=final_level-2; i>=0; i-- ) {
 			//	Prolongate the solution on coarser level i+1 to next finer level i
 			printf("\n----------------------------------------------------------------------------------------------------\n                                           Level:%d -> Level:%d \nProlongate solution to finer level as approximate solution on such level\n", i+1, i);
 			prolongation( (phi + level_ind[i+1]), nn[i+1], (phi + level_ind[i]));
 
 			//	Copy rho of Poisson equation to rhs
+#			ifdef DEBUG
+			printf("Copy rho to rhs on level %d's nested iteration loop\n", i);
+#			endif
 			memcpy( (rhs + level_ind[i]), (rho + level_ind[i]), pow(nn[i],2) * sizeof(double) );
 
 			//	Apply V cycle ncycle times, then back to level i
 			for( int vcycle=0; vcycle<ncycle; vcycle++ ) {
 				//	Down until 2nd last level
+				//	First level of downward processes is dealing with Poisson equation
+				down_1step( phi, rhs, i, nn, level_ind, conv_loop, 0 );
 				int ll;
-				for( ll=i; ll<final_level-1; ll++ ) {
-					bool w = 1;
-					//	First level of downward processes is dealing with Poisson equation
-					if( ll==i ) w = 0;
-					down_1step( phi, rhs, ll, nn, level_ind, conv_loop, w );
+				for( ll=i+1; ll<final_level-1; ll++ ) {
+					down_1step( phi, rhs, ll, nn, level_ind, conv_loop, 1 );
 				}
+				
 				//	Apply exact solver to residual equation on coarsest level 
 				printf("----------------------------------------------------------------------------------------------------\n                                                Level:%d \n(Solve exact solution of residual equation on coarsest level)\n", final_level-1);
 				exact_solver( (phi + level_ind[final_level-1]), (rhs + level_ind[final_level-1]), nn[final_level-1], conv_precision, omega_sor, 1 );
+				
 				//	Up until level i
-				for( ll=final_level-1; ll>i; ll-- ) {
-					bool w = 1;
-					//	Last level of upward processes is dealing with Poisson equation
-					if( ll==i ) w = 0;	
-					up_1step( phi, rhs, ll, nn, level_ind, conv_loop, w );
+				for( ll=final_level-1; ll>i+1; ll-- ) {
+					up_1step( phi, rhs, ll, nn, level_ind, conv_loop, 1 );
 				}
+				//	Last level of upward processes is dealing with Poisson equation
+				up_1step( phi, rhs, i+1, nn, level_ind, conv_loop, 0 );
+				
+#				ifdef DEBUG
 				printf("\nFinish V cycle No.%d on level %d\n", vcycle+1, i);
+#				endif
 			}
 			printf("\nFinish V cycle on level %d\n", i);
 		} //	Reach the finest level
@@ -289,7 +296,7 @@ int main( int argc, char *argv[] ) {
 
 		//	Compute error
 		relative_error( (phi + level_ind[0]), analytic, nn[0], error_rel );
-		printf("Relative error  = %g\n", *error_rel);
+		printf("====================================================================================================\nRelative error  = %g\n", *error_rel);
 		
 		free(nn);
 		free(level_ind);
@@ -300,15 +307,19 @@ int main( int argc, char *argv[] ) {
 	}
 
 	t =  omp_get_wtime()-t;
-	printf("\nTotal duration  = %.3f sec.\n", t);
-	printf("Number of cycle = %d\n", cycle_num);
-	printf("Type of cycle = %d\n", cycle_type);
-	printf("Final level     = %d\n", final_level);
+	printf("\nTotal duration  = %.3f sec\n", t);
 	printf("Omega           = %g\n", omega_sor);
-//	if(cycle_type!=4){
-//		printf("Number of cycle = %d\n", cycle_num);
-//		printf("Final level     = %d\n", final_level);
-//	}else if(cycle_type==4)	printf("Omega           = %g\n", omega_sor);
+	printf("Type of cycle   = %d\n", cycle_type);
+	if( cycle_type!=5 ) {
+		printf("Number of cycle = %d\n", cycle_num);
+		printf("Final level     = %d\n", final_level);
+	}
+	if( cycle_type==6 ) {
+		printf("ncycle          = %d\n", ncycle);
+	}
+	if( exact_solver==relaxation ) {
+		printf("Conv_precision  = %e\n", *conv_precision);	
+	}
 #ifdef OPENMP
 	printf("Using openmp\n");
 #endif

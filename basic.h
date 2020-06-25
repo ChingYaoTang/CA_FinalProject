@@ -4,6 +4,7 @@
 #define OPENMP
 #define DEBUG
 #define PARALLEL_FOR //Set the parallel method of relaxation.c
+#define FULL_WEIGHTING
 
 int ind( int i, int j, int n);
 void print( double *matric, int n);

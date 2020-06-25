@@ -85,6 +85,8 @@ void up( double *phi, double *rho, int final_level, int pulse_level, int *nn, in
 	}
 }
 
+
+//	Recursive W cycle
 void W_cycle( double *phi, double *rho, int l, int final_level, int *nn, int *level_ind, double *conv_loop, double *conv_precision ) {	
 	bool w;
 	w=1;
@@ -154,6 +156,8 @@ void W_cycle( double *phi, double *rho, int l, int final_level, int *nn, int *le
 
 }
 
+
+
 //	Down 1 step from level l
 void down_1step( double *phi, double *rhs, int l, int *nn, int *level_ind, double *conv_loop, bool w ) {
 	printf("----------------------------------------------------------------------------------------------------\n                                           Level:%d -> Level:%d\n", l, l+1);
@@ -165,11 +169,11 @@ void down_1step( double *phi, double *rhs, int l, int *nn, int *level_ind, doubl
 	double *residual = (double *)malloc( pow(nn[l],2) * sizeof(double) );
 	cal_residual( (phi + level_ind[l]), (rhs + level_ind[l]), (residual), nn[l], w );
 
-	//	Restrict the residual, which is rhs in next coarser level
+	//	Restrict the residual, which is rhs on next coarser level
 	restriction( (residual), nn[l], (rhs + level_ind[l+1]) );
 	free(residual);
 	
-	//	Fill zeros in phi_old in next coarser level
+	//	Fill zeros in phi_old on next coarser level
 	fill_zero( (phi + level_ind[l+1]), nn[l+1] );
 
 	
@@ -179,7 +183,7 @@ void down_1step( double *phi, double *rhs, int l, int *nn, int *level_ind, doubl
 void up_1step( double *phi, double *rhs, int l, int *nn, int *level_ind, double *conv_loop, bool w ) {
 	printf("----------------------------------------------------------------------------------------------------\n                                           Level:%d -> Level:%d\n", l, l-1);
 
-	//	Prolongate the phi_old from coarser level l, which is phi_corr in finer level l-1
+	//	Prolongate the phi_old from coarser level l, which is phi_corr on finer level l-1
 	double *phi_corr = (double *)malloc( pow(nn[l-1],2) * sizeof(double) );
 	prolongation( (phi + level_ind[l]), nn[l], (phi_corr) );	
 
