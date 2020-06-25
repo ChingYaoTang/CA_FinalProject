@@ -34,6 +34,8 @@ void down( double *phi, double *rho, int pulse_level, int final_level, int *nn, 
 		restriction( (residual), nn[l], (rho + level_ind[l+1]) );
 		free(residual);
 
+		//	Fill zero
+		fill_zero( (phi + level_ind[l+1]), nn[l+1] );
 		printf("Down-sample to next level.\n");
 	}
 	printf("----------------------------------------------------------------------------------------------------\n                                                Level:%d\n", final_level-1);

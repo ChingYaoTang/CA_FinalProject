@@ -21,11 +21,11 @@
 const float  L                = 1; 	    	// Boxsize in the solver
 const int    N                = 65;              // Number of the resolution
 const double dx               = L/(N-1);	// Spatial interval 
-const int    cycle_num        = 1;		// Number of cylces
 int          cycle_type       = 3;		// 1:two grid, 2:V cycle, 3:W cycle, 4:SOR
+const int    cycle_num        = 1;		// Number of cylces
 int          final_level      = 4;		// Final level of V cycle or W cycle
 bool         sor_method       = 0;		// 0:even-odd, 1:normal
-float        omega            = 1.5;
+float        omega            = 1;
 cal_fn       exact_solver     = relaxation;	// function name of the exact solver
 
 
@@ -44,7 +44,7 @@ int main( int argc, char *argv[] ) {
 	double *error_rel        = (double *)malloc( sizeof(double) );		// Relative error with analytic solution
 	
 //	Initialize the Poisson solver problem
-	const double bc         = 1.0;        // Boundary condition
+	const double bc         = 0.0;        // Boundary condition
 	const double kx         = PI/L;
 	const double ky         = PI/L;
 	init_sin( analytic, potential, density, kx, ky, bc );

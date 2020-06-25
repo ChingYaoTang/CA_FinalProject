@@ -34,6 +34,15 @@ void add_correction( double *phi_old, double *phi_corr, int n  ) {
 	printf("[N = %3d               ] Finish correction addition.\n", n);
 }
 
+//	fill zero
+void fill_zero( double *phi_guess, int n  ) {
+	int i, j;
+	for( i=0; i<n; i++)
+	for( j=0; j<n; j++) {
+		phi_guess[ind(i, j, n)] = 0;
+	}
+	printf("[N = %3d               ] Fill zero.\n", n);
+}
 
 void test_prol_rest( const int N ) {
 	printf( "test restriction\n" );
