@@ -116,9 +116,6 @@ int main( int argc, char *argv[] ) {
 		double *rho      = (double *)malloc( tot_length * sizeof(double) );
 		memcpy( (phi + level_ind[0] ), potential, pow(nn[0],2) * sizeof(double) );
 		memcpy( (rho + level_ind[0]), density, pow(nn[0],2) * sizeof(double) );
-//		for( int k=1; k<final_level; k++ ) {
-//			fill_zero( (phi + level_ind[k]), nn[k] );
-//		}
 
 		for( int times=0; times<cycle_num; times++ ) {
 			printf("====================================================================================================\n                                             V cycle No.%d\n====================================================================================================\n", times+1);
@@ -196,9 +193,6 @@ int main( int argc, char *argv[] ) {
 		double *rho      = (double *)malloc( tot_length * sizeof(double) );
 		memcpy( (phi + level_ind[0] ), potential, pow(nn[0],2) * sizeof(double) );
 		memcpy( (rho + level_ind[0]), density, pow(nn[0],2) * sizeof(double) );
-		for( int i=1; i<final_level; i++ ) {
-			fill_zero( (phi + level_ind[i]), nn[i] );
-		}
 		
 		for( int times=0; times<cycle_num; times++ ) {
 			printf("====================================================================================================\n                                             W cycle No.%d\n====================================================================================================\n", times+1);
@@ -241,7 +235,6 @@ int main( int argc, char *argv[] ) {
 		double *rho      = (double *)malloc( tot_length * sizeof(double) );
 		double *rhs      = (double *)malloc( tot_length * sizeof(double) );
 		memcpy( (rho + level_ind[0]), density, pow(nn[0],2) * sizeof(double) );
-		fill_zero( (phi + level_ind[0]), nn[0] );
 		for( int i=1; i<final_level; i++ ) {
 			//	Obtain rho of Poisson equation on all levels
 			init_sin_rho( (rho + level_ind[i]), kx, ky, bc, nn[i] );
@@ -251,6 +244,7 @@ int main( int argc, char *argv[] ) {
 		
 //		Start from exact solution on coarsest level for Poisson equation
 		printf("----------------------------------------------------------------------------------------------------\n                                                Level:%d \n(Solve exact solution of Poisson equation on coarsest level)\n", final_level-1);
+		fill_zero( (phi + level_ind[final_level-1]), nn[final_level-1] );
 		exact_solver( (phi + level_ind[final_level-1]), (rho + level_ind[final_level-1]), nn[final_level-1], conv_precision, omega_sor, 0 );
 
 //		Nested iteration from 2nd last level to finset level
@@ -308,12 +302,12 @@ int main( int argc, char *argv[] ) {
 
 	t =  omp_get_wtime()-t;
 	printf("\nTotal duration  = %.3f sec\n", t);
-	printf("Omega           = %g\n", omega_sor);
 	printf("Type of cycle   = %d\n", cycle_type);
 	if( cycle_type!=5 ) {
 		printf("Number of cycle = %d\n", cycle_num);
 		printf("Final level     = %d\n", final_level);
 	}
+	printf("Omega           = %g\n", omega_sor);
 	if( cycle_type==6 ) {
 		printf("ncycle          = %d\n", ncycle);
 	}

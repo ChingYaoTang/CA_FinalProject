@@ -203,6 +203,7 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 		printf( "[N = %4d                ] Finish relaxation. Total iteration = %g, final conv error = %e \n(Duration = %.3f sec)\n", n, *itera, *error, tr);
 	} else {
 		printf("Exact solver by relaxation terminated. Total iteration = %g, final conv error = %e\n", *itera, *error);
+		printf("Duration of exact solver = %.3f sec. \n", tr);
 	}
 
 	free( phi_old );
