@@ -28,4 +28,21 @@ void init_sin_rho( double *density, const double kx, const double ky, double bc,
 	}
 }
 
+//	Test problem of eq.: L*u = 2x(y-1)(y-2x+xy+2)exp(x-y) with homogeneous BC
+void init_test2_anal( double *analytic, int n ) {
+	double h = L/(n-1);
+	for( int i=0; i<n; i++) 
+	for( int j=0; j<n; j++) {
+		analytic[ind( i, j, n )]  = ( i*h )*( 1 - i*h )*( j*h )*( 1 - j*h )*exp( i*h -j*h );
+	}
+}
+
+void init_test2_rho( double *density, int n ) {
+	double h = L/(n-1);
+	for( int i=0; i<n; i++) 
+	for( int j=0; j<n; j++) {
+		density[ind( i, j, n )]  = 2*( i*h )*( j*h - 1 )*( j*h - 2*i*h + i*h*j*h + 2 )*exp( i*h - j*h );
+	}
+}
+
 

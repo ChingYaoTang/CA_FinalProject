@@ -51,10 +51,19 @@ void fill_zero( double *phi_guess, int n  ) {
 #	ifdef OPENMP
 #	pragma omp parallel for collapse(2) private( i,j )
 #	endif
-	for( i=0; i<n; i++)
-	for( j=0; j<n; j++) {
-		phi_guess[ind(i, j, n)] = 0.0;
+	for( i=1; i<n-1; i++)
+	for( j=1; j<n-1; j++) {
+		phi_guess[ind(i, j, n)] = 1e-10;
 	}
+	
+//	impose homogeneous boundary condition
+#	ifdef OPENMP
+#	pragma omp parallel for
+#	endif
+	for( int i=0; i<n; i++ ) {
+		phi_guess[ind(i, 0, n)] = phi_guess[ind(i, n-1, n)] = phi_guess[ind(0, i, n)] = phi_guess[ind(n-1, i, n)] = 0.0;
+	}
+
 #	ifdef DEBUG
 	printf("[N = %4d                ] Finish fill zero.\n", n);
 #	endif

@@ -19,8 +19,8 @@
 const float  L                = 1; 	    	 // Boxsize in the solver
 const int    N                = 65;              // Number of the resolution
 const double dx               = L/(N-1);	 // Spatial interval 
-const int    cycle_type       = 6;		 // 1:two grid, 2:V cycle, 3:W cycle, 4:W cycle, 5:SOR, 6:FMG
-const int    cycle_num        = 1;	 	 // Number of cylces
+const int    cycle_type       = 2;		 // 1:two grid, 2:V cycle, 3:W cycle, 4:W cycle, 5:SOR, 6:FMG
+const int    cycle_num        = 4;	 	 // Number of cylces
 const int    final_level      = 4;		 // Final level of V cycle or W cycle
 const bool   sor_method       = 0;		 // 0:even-odd, 1:normal
 const float  omega_sor        = 1;		 // Omgega of SOR method (1= G-S method)
@@ -42,15 +42,21 @@ int main( int argc, char *argv[] ) {
 	double *error_rel        = (double *)malloc( sizeof(double) );		// Relative error with analytic solution
 	
 //	Initialize the Poisson solver problem
+#	ifdef SINTEST
 	const double bc         = 0.0;        // Boundary condition
 	const double kx         = PI/L;
 	const double ky         = PI/L;
 	init_sin( analytic, potential, density, kx, ky, bc );
+#	endif
+#	ifdef TEST2
+	init_test2_anal( analytic, N );
+	init_test2_rho( density, N );
+	fill_zero( potential, N );
+#	endif
 
-
+//	Start Reckoning the time
 	double t;	
 	t = omp_get_wtime();
-
 
 //	which cycle do u wanna use?
 // 	two grid
@@ -237,7 +243,12 @@ int main( int argc, char *argv[] ) {
 		memcpy( (rho + level_ind[0]), density, pow(nn[0],2) * sizeof(double) );
 		for( int i=1; i<final_level; i++ ) {
 			//	Obtain rho of Poisson equation on all levels
+#ifdef SINTEST
 			init_sin_rho( (rho + level_ind[i]), kx, ky, bc, nn[i] );
+#endif
+#ifdef TEST2
+			init_test2_rho( (rho + level_ind[i]), nn[i] );
+#endif
 		}
 
 		printf("====================================================================================================\n                                             FMG with ncycle = %d\n====================================================================================================\n", ncycle);
@@ -249,6 +260,7 @@ int main( int argc, char *argv[] ) {
 
 //		Nested iteration from 2nd last level to finset level
 		for( int i=final_level-2; i>=0; i-- ) {
+			//	Prolongate the solution on coarser level i+1 to next finer level i
 			//	Prolongate the solution on coarser level i+1 to next finer level i
 			printf("\n----------------------------------------------------------------------------------------------------\n                                           Level:%d -> Level:%d \nProlongate solution to finer level as approximate solution on such level\n", i+1, i);
 			prolongation( (phi + level_ind[i+1]), nn[i+1], (phi + level_ind[i]));
@@ -326,4 +338,3 @@ int main( int argc, char *argv[] ) {
 	free(error_rel);
 	return EXIT_SUCCESS;
 }
-
