@@ -19,7 +19,7 @@
 const float  L                = 1; 	    	 // Boxsize in the solver
 const int    N                = 65;              // Number of the resolution
 const double dx               = L/(N-1);	 // Spatial interval 
-const int    cycle_type       = 2;		 // 1:two grid, 2:V cycle, 3:W cycle, 4:W cycle, 5:SOR, 6:FMG
+const int    cycle_type       = 6;		 // 1:two grid, 2:V cycle, 3:W cycle, 4:W cycle, 5:SOR, 6:FMG
 const int    cycle_num        = 4;	 	 // Number of cylces
 const int    final_level      = 4;		 // Final level of V cycle or W cycle
 const bool   sor_method       = 0;		 // 0:even-odd, 1:normal
@@ -329,6 +329,24 @@ int main( int argc, char *argv[] ) {
 #ifdef OPENMP
 	printf("Using openmp\n");
 #endif
+	
+//	------Save potential------
+	FILE *fw;
+	double *Tmp;
+        char cBuffer[8];
+        fw = fopen( "potential.txt" , "w" );
+        char str[] = "\n";
+	Tmp = (double *)malloc(sizeof(double)* N);
+        for( int i=0;i<N;i++ ){
+                for( int j=0;j<N;j++ ){
+			Tmp[j] = potential[ind(i,j,N)];
+                        sprintf( cBuffer, "%.5f," , Tmp[j]);
+                        fwrite( cBuffer, 1, sizeof(cBuffer)+1, fw);
+                }
+                fwrite( str, sizeof(char), 1, fw);
+        }
+	free(Tmp);
+        fclose(fw);
 
 	free(conv_loop);
 	free(conv_precision);

@@ -3,9 +3,9 @@
 
 #define OPENMP
 #define DEBUG
-#define PARALLEL_FOR //Set the parallel method of relaxation.c
-#define FULL_WEIGHTING
-#define TEST2
+#define PARALLEL_FOR  //Set the parallel method of relaxation.c
+#define FULL_WEIGHTING// Set method of restriction
+#define TEST2         //Set the initial problem
 
 
 int ind( int i, int j, int n);
