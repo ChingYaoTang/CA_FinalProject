@@ -1,7 +1,7 @@
 TARGET	= MG_solver
 CC	= g++  -fopenmp
 CFLAGS	= -o
-OBJ	= main.o init.o basic.o prolongation.o restriction.o cal_residual.o relaxation.o relative_error.o exact_im.o up_down.o
+OBJ	= main.o init.o basic.o prolongation.o restriction.o cal_residual.o relaxation.o relative_error.o exact_im.o exact_fft.o up_down.o
 RM	= rm -f
 
 $(TARGET):$(OBJ)
@@ -23,6 +23,8 @@ relaxation.o:relaxation.c
 relative_error.o:relative_error.c
 	$(CC) $(CFLAGS) $@ -c $^
 exact_im.o:exact_im.c
+	$(CC) $(CFLAGS) $@ -c $^
+exact_fft.o:exact_fft.c
 	$(CC) $(CFLAGS) $@ -c $^
 up_down.o:up_down.c
 	$(CC) $(CFLAGS) $@ -c $^

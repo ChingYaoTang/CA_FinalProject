@@ -12,16 +12,17 @@
 #include "relaxation.h"			
 #include "relative_error.h"
 #include "exact_im.h"
+#include "exact_fft.h"
 #include "up_down.h"
 #include <omp.h>
 
 //	Set the basic parameters
 const float  L                = 1; 	    	 // Boxsize in the solver
-const int    N                = 65;              // Number of the resolution
+const int    N                = 129;         // Number of the resolution
 const double dx               = L/(N-1);	 // Spatial interval 
-const int    cycle_type       = 4;		 // 1:two grid, 2:V cycle, 3:W cycle, 4:W cycle, 5:SOR, 6:FMG
-const int    cycle_num        = 20;	 	 // Number of cylces
-const int    final_level      = 4;		 // Final level of V cycle or W cycle
+const int    cycle_type       = 4;		 // 1:two grid, 2:V cycle, 3:F cycle, 4:W cycle, 5:SOR, 6:FMG
+const int    cycle_num        = 10;	 	 // Number of cylces
+const int    final_level      = 5;		 // Final level of V cycle or W cycle
 const bool   sor_method       = 0;		 // 0:even-odd, 1:normal
 const float  omega_sor        = 1;		 // Omgega of SOR method (1= G-S method)
 cal_fn       exact_solver     = relaxation;	 // Function name of the exact solver
@@ -151,7 +152,7 @@ int main( int argc, char *argv[] ) {
 		free(rho);
 	}
 
-//	W cycle
+//	F cycle
 	else if (cycle_type==3) {
 		int tot_length = 0;
 		int *nn        = (int *)malloc( final_level * sizeof(int));
@@ -170,13 +171,13 @@ int main( int argc, char *argv[] ) {
 		memcpy( (rho + level_ind[0]), density, pow(nn[0],2) * sizeof(double) );
 
 		for( int times=0; times<cycle_num; times++ ) {
-			printf("====================================================================================================\n                                             W cycle No.%d\n====================================================================================================\n", times+1);
+			printf("====================================================================================================\n                                             F cycle No.%d\n====================================================================================================\n", times+1);
 
 			down(phi, rho, 0, final_level, nn, level_ind, conv_loop, conv_precision);
 			
-			for (int i=final_level-3; abs(i)<final_level-2; i--){
-				up(phi, rho, final_level, abs(i)+1, nn, level_ind, conv_loop);
-				down(phi, rho, abs(i)+1, final_level, nn, level_ind, conv_loop, conv_precision);
+			for (int i=final_level-2; i>=0; i--){
+				up(phi, rho, final_level, i, nn, level_ind, conv_loop);
+				down(phi, rho, i, final_level, nn, level_ind, conv_loop, conv_precision);
 			}
 			
 			up(phi, rho, final_level, 0, nn, level_ind, conv_loop);
