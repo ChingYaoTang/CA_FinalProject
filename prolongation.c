@@ -10,7 +10,7 @@
 // arguments: (1)coarse matrix, (2)matrix size of fine matrix, (3)fine matrix
 
 void prolongation( double *matrix_c, int n_c, double *matrix_f) {
-#	ifdef DEBUG	
+#	ifdef OPENMP
 	double t;
 	t = omp_get_wtime();
 #	endif	

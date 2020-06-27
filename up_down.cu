@@ -5,7 +5,7 @@
 #include "basic.h"
 #include "relaxation.h"
 #include "cal_residual.h"
-#include "restriction.h"
+#include "restriction.cuh"
 #include "prolongation.h"
 #include "exact_im.h"
 #include "basic.h"

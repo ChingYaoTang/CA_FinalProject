@@ -1,13 +1,39 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <math.h>
+#include <cmath>
 #include "basic.h"
 #include <omp.h>
+#include "cuda.h"
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
+
 
 // Input the fine gird matrix and calculate the corresponding coarse grid matrix by full weighting operator
 
 // arguments: (1)fine matrix, (2)matrix size of fine matrix, (3)coarse matrix
+
+__global__
+void restriction_gpu( double (*matrix_f), int n_f, double (*matrix_c) ){
+	const int p = blockDim.x*blockIdx.x + threadIdx.x;
+	int n_c = (n_f+1)/2;
+	if( p < n_c*n_c ){
+		const int i_c = p/n_c;
+		const int j_c = p%n_c;
+		int i_f = 2*i_c;
+		int j_f = 2*j_c;
+		matrix_c[i_c*n_c+j_c] = matrix_f[i_c*n_c+j_c]/4
+                                               + ( matrix_f[(i_f+1)*n_f+j_f]
+                                                 + matrix_f[(i_f-1)*n_f+j_f]
+                                                 + matrix_f[i_f*n_f+(j_f+1)]
+                                                 + matrix_f[i_f*n_f+(j_f-1)] )/8
+                                               + ( matrix_f[(i_f+1)*n_f+(j_f+1)]
+                                                 + matrix_f[(i_f-1)*n_f+(j_f-1)]
+                                                 + matrix_f[(i_f+1)*n_f+(j_f-1)]
+                                                 + matrix_f[(i_f-1)*n_f+(j_f+1)] )/16;
+		}
+	}
+
 
 void restriction( double *matrix_f, int n_f, double *matrix_c ) {
 #	ifdef DEBUG
@@ -16,6 +42,18 @@ void restriction( double *matrix_f, int n_f, double *matrix_c ) {
 #	endif
 	int n_c = (n_f+1)/2;
 	int i_c, j_c, i_f, j_f;
+	
+#	ifdef GPU
+	double (*d_matrix_f),(*d_matrix_c);
+	cudaMalloc( &d_matrix_f, n_f*n_f*sizeof(double));
+	cudaMalloc( &d_matrix_c, n_c*n_c*sizeof(double));
+	cudaMemcpy( d_matrix_f, matrix_f, n_f*n_f*sizeof(double), cudaMemcpyHostToDevice );
+	restriction_gpu  <<< GRID_SIZE, BLOCK_SIZE >>> ( d_matrix_f, n_f, d_matrix_c );
+	cudaMemcpy( matrix_c, d_matrix_c, n_c*n_c*sizeof(double), cudaMemcpyDeviceToHost );
+	cudaFree(d_matrix_f);
+	cudaFree(d_matrix_c);
+	printf("Using gpu restrict.\n");
+#	endif
 	
 //	Interior points
 #	ifdef OPENMP

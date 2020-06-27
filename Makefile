@@ -11,12 +11,12 @@ main.o:main.cu
 	$(NVCC) $(CFLAGS) $@ -c $^
 init.o:init.c
 	$(CC) $(CFLAGS) $@ -c $^
-basic.o:basic.c
-	$(CC) $(CFLAGS) $@ -c $^
+basic.o:basic.cu
+	$(NVCC) $(CFLAGS) $@ -c $^
 prolongation.o:prolongation.c
 	$(CC) $(CFLAGS) $@ -c $^
-restriction.o:restriction.c
-	$(CC) $(CFLAGS) $@ -c $^
+restriction.o:restriction.cu
+	$(NVCC) $(CFLAGS) $@ -c $^
 cal_residual.o:cal_residual.c
 	$(CC) $(CFLAGS) $@ -c $^
 relaxation.o:relaxation.c
@@ -25,8 +25,8 @@ relative_error.o:relative_error.c
 	$(CC) $(CFLAGS) $@ -c $^
 exact_im.o:exact_im.c
 	$(CC) $(CFLAGS) $@ -c $^
-up_down.o:up_down.c
-	$(CC) $(CFLAGS) $@ -c $^
+up_down.o:up_down.cu
+	$(NVCC) $(CFLAGS) $@ -c $^
 
 
 

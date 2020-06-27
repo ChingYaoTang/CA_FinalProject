@@ -5,7 +5,7 @@
 #include <math.h>
 #define PI acos(-1)
 #include "init.h"			
-#include "restriction.h"
+#include "restriction.cuh"
 #include "prolongation.h"
 #include "basic.h"
 #include "cal_residual.h"
@@ -17,7 +17,7 @@
 
 //	Set the basic parameters
 const float  L                = 1; 	    	 // Boxsize in the solver
-const int    N                = 1025;              // Number of the resolution
+const int    N                = 65;              // Number of the resolution
 const double dx               = L/(N-1);	 // Spatial interval 
 const int    cycle_type       = 2;		 // 1:two grid, 2:V cycle, 3:W cycle, 4:W cycle, 5:SOR, 6:FMG
 const int    cycle_num        = 1;	 	 // Number of cylces
@@ -54,6 +54,7 @@ int main( int argc, char *argv[] ) {
 	fill_zero( potential, N );
 #	endif
 
+//	test_prol_rest(N,analytic);
 //	Start Reckoning the time
 //	double t;	
 //	t = omp_get_wtime();
