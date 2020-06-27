@@ -19,13 +19,15 @@
 const float  L                = 1; 	    	 // Boxsize in the solver
 const int    N                = 65;              // Number of the resolution
 const double dx               = L/(N-1);	 // Spatial interval 
-const int    cycle_type       = 2;		 // 1:two grid, 2:V cycle, 3:W cycle, 4:W cycle, 5:SOR, 6:FMG
-const int    cycle_num        = 4;	 	 // Number of cylces
+const int    cycle_type       = 4;		 // 1:two grid, 2:V cycle, 3:W cycle, 4:W cycle, 5:SOR, 6:FMG
+const int    cycle_num        = 20;	 	 // Number of cylces
 const int    final_level      = 4;		 // Final level of V cycle or W cycle
 const bool   sor_method       = 0;		 // 0:even-odd, 1:normal
 const float  omega_sor        = 1;		 // Omgega of SOR method (1= G-S method)
 cal_fn       exact_solver     = relaxation;	 // Function name of the exact solver
-const int    ncycle	      = 2;		 // Number of V cycle to be used in FMG
+const int    ncycle_FMG	      = 2;		 // Number of V cycle to be used in FMG
+double	     final_conv_rate  = 1;
+double	     break_criterion  = 1e-12;
 
 //main function
 int main( int argc, char *argv[] ) {
@@ -95,7 +97,12 @@ int main( int argc, char *argv[] ) {
 			//	Compute error
 			//print( potential, N );
 			relative_error( potential, analytic, N, error_rel );
-			printf("====================================================================================================\nRelative error  = %g\n", *error_rel);
+			printf("====================================================================================================\nRelative error compared with anal = %g\n", *error_rel);
+			
+			if( final_conv_rate<break_criterion ) {
+				printf("Reach the break criterion (%g/%g) at cycle No.%d\n", final_conv_rate, break_criterion, times+1);
+				break;
+			}
 			
 			free(residual_h);
 			free(residual_2h);
@@ -131,7 +138,12 @@ int main( int argc, char *argv[] ) {
 			
 			//	Compute error
 			relative_error( (phi + level_ind[0]), analytic, nn[0], error_rel );
-			printf("====================================================================================================\nRelative error  = %g\n", *error_rel);
+			printf("====================================================================================================\nRelative error compared with anal = %g\n", *error_rel);
+			
+			if( final_conv_rate<break_criterion ) {
+				printf("Reach the break criterion (%g/%g) at cycle No.%d\n", final_conv_rate, break_criterion, times+1);
+				break;
+			}
 		}
 		free(nn);
 		free(level_ind);
@@ -172,8 +184,12 @@ int main( int argc, char *argv[] ) {
 			//	Compute error
 			//	print( potential, N );
 			relative_error( (phi + level_ind[0]), analytic, nn[0], error_rel );
-			printf("====================================================================================================\nRelative error  = %g\n", *error_rel);
+			printf("====================================================================================================\nRelative error compared with anal = %g\n", *error_rel);
 			
+			if( final_conv_rate<break_criterion ) {
+				printf("Reach the break criterion (%g/%g) at cycle No.%d\n", final_conv_rate, break_criterion, times+1);
+				break;
+			}
 		}
 		free(nn);
 		free(level_ind);
@@ -208,7 +224,12 @@ int main( int argc, char *argv[] ) {
 			
 			//	Compute error
 			relative_error( (phi + level_ind[0]), analytic, nn[0], error_rel );
-			printf("====================================================================================================\nRelative error  = %g\n", *error_rel);
+			printf("====================================================================================================\nRelative error compared with anal = %g\n", *error_rel);
+			
+			if( final_conv_rate<break_criterion ) {
+				printf("Reach the break criterion (%g/%g) at cycle No.%d\n", final_conv_rate, break_criterion, times+1);
+				break;
+			}
 		}
 		free(nn);
 		free(level_ind);
@@ -219,9 +240,9 @@ int main( int argc, char *argv[] ) {
 
 //	SOR
 	else if (cycle_type==5) {
-		relaxation( potential, density, N, conv_precision, omega_sor, 0 );
+		exact_solver( potential, density, N, &break_criterion, omega_sor, 0 );
 		relative_error( potential, analytic, N, error_rel );
-		printf("====================================================================================================\nRelative error  = %g\n", *error_rel);
+		printf("====================================================================================================\nRelative error compare with anal = %g\n", *error_rel);
 	}
 
 //	FMG
@@ -251,7 +272,7 @@ int main( int argc, char *argv[] ) {
 #endif
 		}
 
-		printf("====================================================================================================\n                                             FMG with ncycle = %d\n====================================================================================================\n", ncycle);
+		printf("====================================================================================================\n                                             FMG with ncycle = %d\n====================================================================================================\n", ncycle_FMG);
 		
 //		Start from exact solution on coarsest level for Poisson equation
 		printf("----------------------------------------------------------------------------------------------------\n                                                Level:%d \n(Solve exact solution of Poisson equation on coarsest level)\n", final_level-1);
@@ -260,7 +281,6 @@ int main( int argc, char *argv[] ) {
 
 //		Nested iteration from 2nd last level to finset level
 		for( int i=final_level-2; i>=0; i-- ) {
-			//	Prolongate the solution on coarser level i+1 to next finer level i
 			//	Prolongate the solution on coarser level i+1 to next finer level i
 			printf("\n----------------------------------------------------------------------------------------------------\n                                           Level:%d -> Level:%d \nProlongate solution to finer level as approximate solution on such level\n", i+1, i);
 			prolongation( (phi + level_ind[i+1]), nn[i+1], (phi + level_ind[i]));
@@ -272,7 +292,7 @@ int main( int argc, char *argv[] ) {
 			memcpy( (rhs + level_ind[i]), (rho + level_ind[i]), pow(nn[i],2) * sizeof(double) );
 
 			//	Apply V cycle ncycle times, then back to level i
-			for( int vcycle=0; vcycle<ncycle; vcycle++ ) {
+			for( int vcycle=0; vcycle<ncycle_FMG; vcycle++ ) {
 				//	Down until 2nd last level
 				//	First level of downward processes is dealing with Poisson equation
 				down_1step( phi, rhs, i, nn, level_ind, conv_loop, 0 );
@@ -302,7 +322,7 @@ int main( int argc, char *argv[] ) {
 
 		//	Compute error
 		relative_error( (phi + level_ind[0]), analytic, nn[0], error_rel );
-		printf("====================================================================================================\nRelative error  = %g\n", *error_rel);
+		printf("====================================================================================================\nRelative error compared with anal = %g\n", *error_rel);
 		
 		free(nn);
 		free(level_ind);
@@ -321,7 +341,7 @@ int main( int argc, char *argv[] ) {
 	}
 	printf("Omega           = %g\n", omega_sor);
 	if( cycle_type==6 ) {
-		printf("ncycle          = %d\n", ncycle);
+		printf("ncycle          = %d\n", ncycle_FMG);
 	}
 	if( exact_solver==relaxation ) {
 		printf("Conv_precision  = %e\n", *conv_precision);	

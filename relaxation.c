@@ -6,6 +6,8 @@
 #include "relative_error.h"
 #include <omp.h>
 
+extern double final_conv_rate;
+extern const int N;
 extern const float L;
 extern const bool sor_method; 
 
@@ -201,6 +203,7 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 
 	if( *conv_criterion>1.0 ) {
 		printf( "[N = %4d                ] Finish relaxation. Total iteration = %g, final conv error = %e \n(Duration = %.3f sec)\n", n, *itera, *error, tr);
+		if( n==N ) final_conv_rate = *error;
 	} else {
 		printf("Exact solver by relaxation terminated. Total iteration = %g, final conv error = %e\n", *itera, *error);
 		printf("Duration of exact solver = %.3f sec. \n", tr);
