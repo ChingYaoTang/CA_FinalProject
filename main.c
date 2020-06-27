@@ -17,18 +17,18 @@
 #include <omp.h>
 
 //	Set the basic parameters
-const float  L                = 1; 	    	 // Boxsize in the solver
-const int    N                = 129;         // Number of the resolution
-const double dx               = L/(N-1);	 // Spatial interval 
-const int    cycle_type       = 4;		 // 1:two grid, 2:V cycle, 3:F cycle, 4:W cycle, 5:SOR, 6:FMG
-const int    cycle_num        = 10;	 	 // Number of cylces
-const int    final_level      = 5;		 // Final level of V cycle or W cycle
-const bool   sor_method       = 0;		 // 0:even-odd, 1:normal
-const float  omega_sor        = 1;		 // Omgega of SOR method (1= G-S method)
-cal_fn       exact_solver     = relaxation;	 // Function name of the exact solver
-const int    ncycle_FMG	      = 2;		 // Number of V cycle to be used in FMG
-double	     final_conv_rate  = 1;
-double	     break_criterion  = 1e-12;
+const float  L                = 1; 	    	// Boxsize in the solver
+const int    N                = 65;		// Number of the resolution
+const double dx               = L/(N-1);	// Spatial interval 
+const int    cycle_type       = 2;		// 1:two grid, 2:V cycle, 3:F cycle, 4:W cycle, 5:SOR, 6:FMG
+const int    cycle_num        = 10;	 	// Number of cylces
+const int    final_level      = 4;		// Final level of V cycle or W cycle
+const bool   sor_method       = 0;		// 0:even-odd, 1:normal
+const float  omega_sor        = 1;		// Omgega of SOR method (1= G-S method)
+cal_fn       exact_solver     = relaxation;	// Function name of the exact solver
+const int    ncycle_FMG	      = 2;		// Number of V cycle to be used in FMG
+double	     final_conv_rate  = 1;		// Variable for storing the conv_error in relaxation at finest level
+double	     break_criterion  = 1e-12;		// Criterion of conv_error in relaxation at finest level, which breaks the loop of cycle_num
 
 //main function
 int main( int argc, char *argv[] ) {
@@ -100,15 +100,15 @@ int main( int argc, char *argv[] ) {
 			relative_error( potential, analytic, N, error_rel );
 			printf("====================================================================================================\nRelative error compared with anal = %g\n", *error_rel);
 			
-			if( final_conv_rate<break_criterion ) {
-				printf("Reach the break criterion (%g/%g) at cycle No.%d\n", final_conv_rate, break_criterion, times+1);
-				break;
-			}
-			
 			free(residual_h);
 			free(residual_2h);
 			free(phi_corr_h);
 			free(phi_corr_2h);
+			
+			if( final_conv_rate<break_criterion ) {
+				printf("Reach the break criterion (%g/%g) at two-grid cycle No.%d\n", final_conv_rate, break_criterion, times+1);
+				break;
+			}
 		}
 	}
 
@@ -142,7 +142,7 @@ int main( int argc, char *argv[] ) {
 			printf("====================================================================================================\nRelative error compared with anal = %g\n", *error_rel);
 			
 			if( final_conv_rate<break_criterion ) {
-				printf("Reach the break criterion (%g/%g) at cycle No.%d\n", final_conv_rate, break_criterion, times+1);
+				printf("Reach the break criterion (%g/%g) at V cycle No.%d\n", final_conv_rate, break_criterion, times+1);
 				break;
 			}
 		}
@@ -188,7 +188,7 @@ int main( int argc, char *argv[] ) {
 			printf("====================================================================================================\nRelative error compared with anal = %g\n", *error_rel);
 			
 			if( final_conv_rate<break_criterion ) {
-				printf("Reach the break criterion (%g/%g) at cycle No.%d\n", final_conv_rate, break_criterion, times+1);
+				printf("Reach the break criterion (%g/%g) at F cycle No.%d\n", final_conv_rate, break_criterion, times+1);
 				break;
 			}
 		}
@@ -228,7 +228,7 @@ int main( int argc, char *argv[] ) {
 			printf("====================================================================================================\nRelative error compared with anal = %g\n", *error_rel);
 			
 			if( final_conv_rate<break_criterion ) {
-				printf("Reach the break criterion (%g/%g) at cycle No.%d\n", final_conv_rate, break_criterion, times+1);
+				printf("Reach the break criterion (%g/%g) at W cycle No.%d\n", final_conv_rate, break_criterion, times+1);
 				break;
 			}
 		}
@@ -245,6 +245,7 @@ int main( int argc, char *argv[] ) {
 		relative_error( potential, analytic, N, error_rel );
 		printf("====================================================================================================\nRelative error compare with anal = %g\n", *error_rel);
 	}
+
 
 //	FMG
 	else if (cycle_type==6) {
@@ -265,12 +266,12 @@ int main( int argc, char *argv[] ) {
 		memcpy( (rho + level_ind[0]), density, pow(nn[0],2) * sizeof(double) );
 		for( int i=1; i<final_level; i++ ) {
 			//	Obtain rho of Poisson equation on all levels
-#ifdef SINTEST
+#			ifdef SINTEST
 			init_sin_rho( (rho + level_ind[i]), kx, ky, bc, nn[i] );
-#endif
-#ifdef TEST2
+#			endif
+#			ifdef TEST2
 			init_test2_rho( (rho + level_ind[i]), nn[i] );
-#endif
+#			endif
 		}
 
 		printf("====================================================================================================\n                                             FMG with ncycle = %d\n====================================================================================================\n", ncycle_FMG);
@@ -347,9 +348,9 @@ int main( int argc, char *argv[] ) {
 	if( exact_solver==relaxation ) {
 		printf("Conv_precision  = %e\n", *conv_precision);	
 	}
-#ifdef OPENMP
+#	ifdef OPENMP
 	printf("Using openmp\n");
-#endif
+#	endif
 
 	free(conv_loop);
 	free(conv_precision);
