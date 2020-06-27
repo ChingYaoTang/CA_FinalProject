@@ -17,10 +17,10 @@
 
 //	Set the basic parameters
 const float  L                = 1; 	    	 // Boxsize in the solver
-const int    N                = 65;              // Number of the resolution
+const int    N                = 1025;              // Number of the resolution
 const double dx               = L/(N-1);	 // Spatial interval 
-const int    cycle_type       = 6;		 // 1:two grid, 2:V cycle, 3:W cycle, 4:W cycle, 5:SOR, 6:FMG
-const int    cycle_num        = 4;	 	 // Number of cylces
+const int    cycle_type       = 2;		 // 1:two grid, 2:V cycle, 3:W cycle, 4:W cycle, 5:SOR, 6:FMG
+const int    cycle_num        = 1;	 	 // Number of cylces
 const int    final_level      = 4;		 // Final level of V cycle or W cycle
 const bool   sor_method       = 0;		 // 0:even-odd, 1:normal
 const float  omega_sor        = 1;		 // Omgega of SOR method (1= G-S method)
@@ -55,8 +55,8 @@ int main( int argc, char *argv[] ) {
 #	endif
 
 //	Start Reckoning the time
-	double t;	
-	t = omp_get_wtime();
+//	double t;	
+//	t = omp_get_wtime();
 
 //	which cycle do u wanna use?
 // 	two grid
@@ -312,8 +312,8 @@ int main( int argc, char *argv[] ) {
 
 	}
 
-	t =  omp_get_wtime()-t;
-	printf("\nTotal duration  = %.3f sec\n", t);
+//	t =  omp_get_wtime()-t;
+//	printf("\nTotal duration  = %.3f sec\n", t);
 	printf("Type of cycle   = %d\n", cycle_type);
 	if( cycle_type!=5 ) {
 		printf("Number of cycle = %d\n", cycle_num);
@@ -329,7 +329,8 @@ int main( int argc, char *argv[] ) {
 #ifdef OPENMP
 	printf("Using openmp\n");
 #endif
-	
+
+/*	
 //	------Save potential------
 	FILE *fw;
 	double *Tmp;
@@ -347,7 +348,7 @@ int main( int argc, char *argv[] ) {
         }
 	free(Tmp);
         fclose(fw);
-
+*/
 	free(conv_loop);
 	free(conv_precision);
 	free(analytic);

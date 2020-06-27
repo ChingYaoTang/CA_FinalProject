@@ -15,9 +15,10 @@ extern const bool sor_method;
 // 	      (7)which equation are we dealing with: 0 for Poisson eq., 1 for residual eq. 
 
 void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, float omega, bool w ) {
+#ifdef DEBUG
 	double tr;
 	tr	= omp_get_wtime();
-
+#endif
 //	Determine the physical grid size
 	double h = L/(n-1);
 
@@ -194,16 +195,18 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 			relative_error( phi_guess, phi_old, n, error );
 		}
 	}
-	
+#ifdef DEBUG	
 
 	tr = omp_get_wtime()-tr;
 	
-
+#endif
 	if( *conv_criterion>1.0 ) {
-		printf( "[N = %4d                ] Finish relaxation. Total iteration = %g, final conv error = %e \n(Duration = %.3f sec)\n", n, *itera, *error, tr);
+		printf( "[N = %4d                ] Finish relaxation. Total iteration = %g, final conv error = %e \n", n, *itera, *error);
 	} else {
 		printf("Exact solver by relaxation terminated. Total iteration = %g, final conv error = %e\n", *itera, *error);
+#ifdef DEBUG
 		printf("Duration of exact solver = %.3f sec. \n", tr);
+#endif
 	}
 
 	free( phi_old );

@@ -1,13 +1,14 @@
 TARGET	= MG_solver
 CC	= g++  -fopenmp
 CFLAGS	= -o
+NVCC	= nvcc
 OBJ	= main.o init.o basic.o prolongation.o restriction.o cal_residual.o relaxation.o relative_error.o exact_im.o up_down.o
 RM	= rm -f
 
 $(TARGET):$(OBJ)
-	$(CC) $^ $(CFLAGS) $(TARGET)
-main.o:main.c
-	$(CC) $(CFLAGS) $@ -c $^
+	$(NVCC) $^ $(CFLAGS) $(TARGET)
+main.o:main.cu
+	$(NVCC) $(CFLAGS) $@ -c $^
 init.o:init.c
 	$(CC) $(CFLAGS) $@ -c $^
 basic.o:basic.c

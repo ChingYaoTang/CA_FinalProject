@@ -1,9 +1,10 @@
 #ifndef BASIC_H
 #define BASIC_H
 
-#define OPENMP
-#define DEBUG
-#define PARALLEL_FOR  //Set the parallel method of relaxation.c
+//#define OPENMP
+//#define DEBUG
+//#define PARALLEL_FOR  //Set the parallel method of relaxation.c
+#define WO_OMP
 #define FULL_WEIGHTING// Set method of restriction
 #define TEST2         //Set the initial problem
 
