@@ -12,14 +12,15 @@
 #include "relaxation.h"			
 #include "relative_error.h"
 #include "exact_im.h"
+#include "exact_fft.h"
 #include "up_down.h"
 #include <omp.h>
 
 //	Set the basic parameters
 const float  L                = 1; 	    	 // Boxsize in the solver
-const int    N                = 129;              // Number of the resolution
+const int    N                = 129;         // Number of the resolution
 const double dx               = L/(N-1);	 // Spatial interval 
-const int    cycle_type       = 3;		 // 1:two grid, 2:V cycle, 3:F cycle, 4:W cycle, 5:SOR, 6:FMG
+const int    cycle_type       = 6;		 // 1:two grid, 2:V cycle, 3:F cycle, 4:W cycle, 5:SOR, 6:FMG
 const int    cycle_num        = 2;	 	 // Number of cylces
 const int    final_level      = 5;		 // Final level of V cycle or W cycle
 const bool   sor_method       = 0;		 // 0:even-odd, 1:normal
