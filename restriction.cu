@@ -15,23 +15,24 @@
 
 __global__
 void restriction_gpu( double (*matrix_f), int n_f, double (*matrix_c) ){
-	const int p = blockDim.x*blockIdx.x + threadIdx.x;
+//	const int p = blockDim.x*blockIdx.x + threadIdx.x;
 	int n_c = (n_f+1)/2;
-	if( p < n_c*n_c ){
-		const int i_c = p/n_c;
-		const int j_c = p%n_c;
-		int i_f = 2*i_c;
-		int j_f = 2*j_c;
-		matrix_c[i_c*n_c+j_c] = matrix_f[i_c*n_c+j_c]/4
-                                               + ( matrix_f[(i_f+1)*n_f+j_f]
-                                                 + matrix_f[(i_f-1)*n_f+j_f]
-                                                 + matrix_f[i_f*n_f+(j_f+1)]
-                                                 + matrix_f[i_f*n_f+(j_f-1)] )/8
-                                               + ( matrix_f[(i_f+1)*n_f+(j_f+1)]
-                                                 + matrix_f[(i_f-1)*n_f+(j_f-1)]
-                                                 + matrix_f[(i_f+1)*n_f+(j_f-1)]
-                                                 + matrix_f[(i_f-1)*n_f+(j_f+1)] )/16;
-		}
+	int p   = blockDim.x*blockIdx.x + threadIdx.x;
+	int i_c = p/n_c;
+	int j_c = p%n_c;
+	int i_f = 2*i_c;
+	int j_f = 2*j_c;
+	if( i_c<n_c && j_c<n_c){
+	matrix_c[i_c*n_c+j_c] = 20.0;/*matrix_f[i_c*n_c+j_c]/4
+                              + ( matrix_f[(i_f+1)*n_f+j_f]
+                                + matrix_f[(i_f-1)*n_f+j_f]
+                                + matrix_f[i_f*n_f+(j_f+1)]
+                                + matrix_f[i_f*n_f+(j_f-1)] )/8
+                                + ( matrix_f[(i_f+1)*n_f+(j_f+1)]
+                                  + matrix_f[(i_f-1)*n_f+(j_f-1)]
+                                  + matrix_f[(i_f+1)*n_f+(j_f-1)]
+                                  + matrix_f[(i_f-1)*n_f+(j_f+1)] )/16;*/
+	}
 	}
 
 
@@ -58,7 +59,7 @@ void restriction( double *matrix_f, int n_f, double *matrix_c ) {
 //	Interior points
 #	ifdef OPENMP
 #	pragma omp parallel for collapse( 2 ) private( i_f, j_f )
-#	endif
+//#	endif
 	for( i_c=1; i_c<n_c; i_c++ )
 	for( j_c=1; j_c<n_c; j_c++ ) {
 		i_f = 2*i_c;
@@ -82,7 +83,8 @@ void restriction( double *matrix_f, int n_f, double *matrix_c ) {
 				                 + matrix_f[ind(i_f, j_f-1, n_f)] )/8;
 #		endif
 	}
-
+	printf("using openmp");
+#endif
 //	Boundary points
 #	ifdef OPENMP
 #	pragma omp parallel for private( i_f )

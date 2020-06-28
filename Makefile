@@ -13,8 +13,8 @@ init.o:init.c
 	$(CC) $(CFLAGS) $@ -c $^
 basic.o:basic.cu
 	$(NVCC) $(CFLAGS) $@ -c $^
-prolongation.o:prolongation.c
-	$(CC) $(CFLAGS) $@ -c $^
+prolongation.o:prolongation.cu
+	$(NVCC) $(CFLAGS) $@ -c $^
 restriction.o:restriction.cu
 	$(NVCC) $(CFLAGS) $@ -c $^
 cal_residual.o:cal_residual.c
