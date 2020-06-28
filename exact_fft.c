@@ -16,7 +16,7 @@ void exact_fft( double *phi_corr, double *residual, int n, double *conv_criterio
     /// Declare FFTW components.
     fftw_complex *residualk;
     residualk = (fftw_complex*) fftw_malloc( n * n * sizeof(fftw_complex));
-    fftw_plan fwrd = fftw_plan_dft_r2c_2d(n,n,residual,residualk,FFTW_ESTIMATE);
+    fftw_plan fwrd = fftw_plan_dft_r2r_2d(n,n,residual,residualk,FFTW_ESTIMATE);
     fftw_plan bwrd = fftw_plan_dft_c2r_2d(n,n,phi_corr,residualk,FFTW_ESTIMATE);
         
     fftw_execute(fwrd);
