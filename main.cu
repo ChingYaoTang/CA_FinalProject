@@ -17,10 +17,10 @@
 
 //	Set the basic parameters
 const float  L                = 1; 	    	 // Boxsize in the solver
-const int    N                = 65;              // Number of the resolution
+const int    N                = 9;              // Number of the resolution
 const double dx               = L/(N-1);	 // Spatial interval 
 const int    cycle_type       = 2;		 // 1:two grid, 2:V cycle, 3:W cycle, 4:W cycle, 5:SOR, 6:FMG
-const int    cycle_num        = 5;	 	 // Number of cylces
+const int    cycle_num        = 1;	 	 // Number of cylces
 const int    final_level      = 4;		 // Final level of V cycle or W cycle
 const bool   sor_method       = 0;		 // 0:even-odd, 1:normal
 const float  omega_sor        = 1;		 // Omgega of SOR method (1= G-S method)
@@ -32,7 +32,7 @@ int main( int argc, char *argv[] ) {
 //	test_prol_rest(N);	
 
 	double *conv_loop        = (double *)malloc( sizeof(double) );		// Criterion for the smoothing
-	*conv_loop               = 10;
+	*conv_loop               = 1;
 	double *conv_precision   = (double *)malloc( sizeof(double) );		// Criterion for exact relaxation solver
 	*conv_precision          = 1e-10;
 
@@ -58,6 +58,18 @@ int main( int argc, char *argv[] ) {
 //	double t;	
 //	t = omp_get_wtime();
 
+//	printf("potential:\n");
+//	print(potential,N);
+	relaxation( potential, density, N, conv_loop, 1, 0 );
+	printf("after relaxation:\n");
+	print(potential,N);
+#ifdef PARALLEL_GPU
+	printf("Using GPU.\n");
+#else
+	printf("Not using GPU.\n");
+#endif
+
+#ifdef  NORMAL
 //	which cycle do u wanna use?
 // 	two grid
 	if (cycle_type==1) {
@@ -329,7 +341,7 @@ int main( int argc, char *argv[] ) {
 #ifdef OPENMP
 	printf("Using openmp\n");
 #endif
-
+#endif
 /*	
 //	------Save potential------
 	FILE *fw;

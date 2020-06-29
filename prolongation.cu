@@ -14,23 +14,21 @@ void prolongation_gpu( double (*matrix_c), int n_c, double (*matrix_f) ){
 	int n_f = 2*n_c-1;
 	const int i_f = blockIdx.x;
        	const int j_f = threadIdx.x;
-	if( i_f<n_f && j_f<n_f ){
-		int i_c = i_f/2;
-		int j_c = j_f/2;
-		if( i_f%2==0 && j_f%2==0 ){
-			matrix_f[i_f*n_f+j_f] = matrix_c[i_c*n_c+j_c];
-		}else if(i_f%2==0 && j_f%2==1 ){
-			j_c = (j_f+1)/2;
-			matrix_f[i_f*n_f+j_f] = (matrix_c[i_c*n_c+(j_c-1)]+matrix_c[i_c*n_c+(j_c)])/2;
-		}else if(i_f%2==1 && j_f%2==0 ){
-			i_c = (i_f+1)/2;
-			matrix_f[i_f*n_f+j_f] = (matrix_c[(i_c)*n_c+j_c]+matrix_c[(i_c-1)*n_c+j_c])/2;
-		}else if(i_f%2==1 && j_f%2==1 ){
-			i_c = (i_f+1)/2;
-			j_c = (j_f+1)/2;
-			matrix_f[i_f*n_f+j_f] = (matrix_c[(i_c)*n_c+(j_c)]+matrix_c[(i_c-1)*n_c+(j_c-1)]
-					+matrix_c[(i_c-1)*n_c+(j_c)]+matrix_c[(i_c)*n_c+(j_c-1)])/4;
-		}
+	int i_c = i_f/2;
+	int j_c = j_f/2;
+	if( i_f%2==0 && j_f%2==0 ){
+		matrix_f[i_f*n_f+j_f] = matrix_c[i_c*n_c+j_c];
+	}else if(i_f%2==0 && j_f%2==1 ){
+		j_c = (j_f+1)/2;
+		matrix_f[i_f*n_f+j_f] = (matrix_c[i_c*n_c+(j_c-1)]+matrix_c[i_c*n_c+(j_c)])/2;
+	}else if(i_f%2==1 && j_f%2==0 ){
+		i_c = (i_f+1)/2;
+		matrix_f[i_f*n_f+j_f] = (matrix_c[(i_c)*n_c+j_c]+matrix_c[(i_c-1)*n_c+j_c])/2;
+	}else if(i_f%2==1 && j_f%2==1 ){
+		i_c = (i_f+1)/2;
+		j_c = (j_f+1)/2;
+		matrix_f[i_f*n_f+j_f] = (matrix_c[(i_c)*n_c+(j_c)]+matrix_c[(i_c-1)*n_c+(j_c-1)]
+				+matrix_c[(i_c-1)*n_c+(j_c)]+matrix_c[(i_c)*n_c+(j_c-1)])/4;
 	}
 
 }
@@ -47,7 +45,7 @@ void prolongation( double *matrix_c, int n_c, double *matrix_f) {
         cudaMalloc( &d_matrix_f, n_f*n_f*sizeof(double));
         cudaMalloc( &d_matrix_c, n_c*n_c*sizeof(double));
         cudaMemcpy( d_matrix_c, matrix_c, n_c*n_c*sizeof(double), cudaMemcpyHostToDevice );
-        prolongation_gpu  <<< GRID_SIZE, BLOCK_SIZE >>> ( d_matrix_c, n_c, d_matrix_f );
+        prolongation_gpu  <<< n_f, n_f >>> ( d_matrix_c, n_c, d_matrix_f );
  	cudaMemcpy( matrix_f, d_matrix_f, n_f*n_f*sizeof(double), cudaMemcpyDeviceToHost );
         cudaFree(d_matrix_f);
         cudaFree(d_matrix_c);

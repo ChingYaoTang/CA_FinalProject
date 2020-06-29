@@ -17,10 +17,10 @@ prolongation.o:prolongation.cu
 	$(NVCC) $(CFLAGS) $@ -c $^
 restriction.o:restriction.cu
 	$(NVCC) $(CFLAGS) $@ -c $^
-cal_residual.o:cal_residual.c
-	$(CC) $(CFLAGS) $@ -c $^
-relaxation.o:relaxation.c
-	$(CC) $(CFLAGS) $@ -c $^
+cal_residual.o:cal_residual.cu
+	$(NVCC) $(CFLAGS) $@ -c $^
+relaxation.o:relaxation.cu
+	$(NVCC) $(CFLAGS) $@ -c $^
 relative_error.o:relative_error.c
 	$(CC) $(CFLAGS) $@ -c $^
 exact_im.o:exact_im.c
