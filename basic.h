@@ -3,12 +3,19 @@
 
 //#define OPENMP
 //#define DEBUG
-//#define PARALLEL_GPU  //Set the parallel method of relaxation.c
-#define WO_OMP
+#define GPU
+
+/////////////////Set th parallel method of relaxation////////////////////
+//#define PARALLEL_SECTION
+//#define PARALLEL_FOR
+//#define WO_OMP
+#define PARALLEL_GPU  
+
+
 #define FULL_WEIGHTING// Set method of restriction
 #define TEST2         //Set the initial problem
 
-#define GPU
+#define NORMAL
 
 int ind( int i, int j, int n);
 void print( double *matric, int n);

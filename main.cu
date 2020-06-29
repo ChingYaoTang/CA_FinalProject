@@ -17,7 +17,7 @@
 
 //	Set the basic parameters
 const float  L                = 1; 	    	 // Boxsize in the solver
-const int    N                = 9;              // Number of the resolution
+const int    N                = 129;              // Number of the resolution
 const double dx               = L/(N-1);	 // Spatial interval 
 const int    cycle_type       = 2;		 // 1:two grid, 2:V cycle, 3:W cycle, 4:W cycle, 5:SOR, 6:FMG
 const int    cycle_num        = 1;	 	 // Number of cylces
@@ -32,7 +32,7 @@ int main( int argc, char *argv[] ) {
 //	test_prol_rest(N);	
 
 	double *conv_loop        = (double *)malloc( sizeof(double) );		// Criterion for the smoothing
-	*conv_loop               = 1;
+	*conv_loop               = 10;
 	double *conv_precision   = (double *)malloc( sizeof(double) );		// Criterion for exact relaxation solver
 	*conv_precision          = 1e-10;
 
@@ -58,11 +58,6 @@ int main( int argc, char *argv[] ) {
 //	double t;	
 //	t = omp_get_wtime();
 
-//	printf("potential:\n");
-//	print(potential,N);
-	relaxation( potential, density, N, conv_loop, 1, 0 );
-	printf("after relaxation:\n");
-	print(potential,N);
 #ifdef PARALLEL_GPU
 	printf("Using GPU.\n");
 #else

@@ -15,7 +15,7 @@ extern const bool sor_method;
 // 	      (7)which equation are we dealing with: 0 for Poisson eq., 1 for residual eq. 
 
 __global__
-void relaxation_gpu( double (*phi_guess), double (*rho), int n, double omega, bool w, double h){
+void relaxation_gpu_odd( double (*phi_guess), double (*rho), int n, double omega, bool w, double h){
 	const int i = blockIdx.x+1;
 	const int j = threadIdx.x+1;
 //	Compute odd cells
@@ -24,7 +24,11 @@ void relaxation_gpu( double (*phi_guess), double (*rho), int n, double omega, bo
 				 		 +phi_guess[i*n+(j+1)]+ phi_guess[i*n+(j-1)]-phi_guess[i*n+j]*4\\
 						 -rho[i*n+j]*pow(h,2)*pow(-1,w));
 	}
-	__syncthreads();
+}
+__global__
+void relaxation_gpu_even( double (*phi_guess), double (*rho), int n, double omega, bool w, double h){
+	const int i = blockIdx.x+1;
+        const int j = threadIdx.x+1;
 	if( (i%2+j%2)%2==1 ){
                  phi_guess[i*n+j] += omega/4 * ( phi_guess[(i+1)*n+j]+ phi_guess[(i-1)*n+j]
                                                  +phi_guess[i*n+(j+1)]+ phi_guess[i*n+(j-1)]-phi_guess[i*n+j]*4
@@ -86,17 +90,18 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 //	       		copy old potential
 			memcpy( phi_old, phi_guess, n*n*sizeof(double) );
 #ifdef PARALLEL_GPU
-			double (*d_phi_guess), (*d_rho);//, (*d_error);
+			double (*d_phi_old), (*d_rho);//, (*d_error);
 		//	cudaMalloc( &d_phi_old, n*n*sizeof(double));
-			cudaMalloc( &d_phi_guess, n*n*sizeof(double));
+			cudaMalloc( &d_phi_old, n*n*sizeof(double));
 			cudaMalloc( &d_rho, n*n*sizeof(double));
 		//	cudaMalloc( &d_error, sizeof(double));
-			cudaMemcpy( d_phi_guess, phi_guess, n*n*sizeof(double), cudaMemcpyHostToDevice );
+			cudaMemcpy( d_phi_old, phi_old, n*n*sizeof(double), cudaMemcpyHostToDevice );
 			cudaMemcpy( d_rho, rho, n*n*sizeof(double), cudaMemcpyHostToDevice );
-			relaxation_gpu <<< n-2,n-2 >>> ( d_phi_guess, d_rho, n, omega, w, h);
-			cudaMemcpy( phi_guess, d_phi_guess, n*n*sizeof(double), cudaMemcpyDeviceToHost );
+			relaxation_gpu_odd <<< n-2,n-2 >>> ( d_phi_old, d_rho, n, omega, w, h);
+			relaxation_gpu_even <<< n-2,n-2 >>> ( d_phi_old, d_rho, n, omega, w, h);
+			cudaMemcpy( phi_guess, d_phi_old, n*n*sizeof(double), cudaMemcpyDeviceToHost );
 			cudaFree(d_rho);
-                	cudaFree(d_phi_guess);
+                	cudaFree(d_phi_old);
                 //	cudaFree(d_phi_old);
 		//	cudaFree(d_error);
 		//	cudaMemcpy( error, d_error, sizeof(double), cudaMemcpyDeviceToHost );
@@ -105,6 +110,7 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 
 #ifdef WO_OMP
 		//	printf("Not Using GPU.\n");
+			
 //			update odd part
 			for( int i=1; i<(n-1); i++ )
  			for( int j=( i%2 + (i+1)%2*2 ); j<(n-1); j+=2 ) {
