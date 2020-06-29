@@ -14,24 +14,26 @@ void prolongation_gpu( double (*matrix_c), int n_c, double (*matrix_f) ){
 	int n_f = 2*n_c-1;
 	const int i_f = blockIdx.x;
        	const int j_f = threadIdx.x;
-	if( i_f<n_f && j_f<n_f ){	
-		matrix_f[i_f*n_f+j_f] = 1.0;	
-		/*if( i_f%2==0 && j_f%2==0 ){
-			int i_c = i_f/2;
-	                int j_c = j_f/2;
-        	        matrix_f[i_f*n_f+j_f] = matrix_c[i_c*n_c+j_c];
+	if( i_f<n_f && j_f<n_f ){
+		int i_c = i_f/2;
+		int j_c = j_f/2;
+		if( i_f%2==0 && j_f%2==0 ){
+			matrix_f[i_f*n_f+j_f] = matrix_c[i_c*n_c+j_c];
+		}else if(i_f%2==0 && j_f%2==1 ){
+			j_c = (j_f+1)/2;
+			matrix_f[i_f*n_f+j_f] = (matrix_c[i_c*n_c+(j_c-1)]+matrix_c[i_c*n_c+(j_c)])/2;
+		}else if(i_f%2==1 && j_f%2==0 ){
+			i_c = (i_f+1)/2;
+			matrix_f[i_f*n_f+j_f] = (matrix_c[(i_c)*n_c+j_c]+matrix_c[(i_c-1)*n_c+j_c])/2;
+		}else if(i_f%2==1 && j_f%2==1 ){
+			i_c = (i_f+1)/2;
+			j_c = (j_f+1)/2;
+			matrix_f[i_f*n_f+j_f] = (matrix_c[(i_c)*n_c+(j_c)]+matrix_c[(i_c-1)*n_c+(j_c-1)]
+					+matrix_c[(i_c-1)*n_c+(j_c)]+matrix_c[(i_c)*n_c+(j_c-1)])/4;
 		}
-		__syncthreads();
-		if( i_f%2==0 && j_f%2==1 ){
-		matrix_f[i_f*n_f+j_f] = ( matrix_f[i_f*n_f+(j_f+1)] + matrix_f[i_f*n_f+(j_f-1)] )/2;
-		}
-		__syncthreads();
-		if( i_f%2==1 ){
-		matrix_f[i_f*n_f+j_f] = ( matrix_f[(i_f+1)*n_f+j_f] + matrix_f[(i_f-1)*n_f+j_f] )/2;
-		}*/
 	}
-}
 
+}
 
 void prolongation( double *matrix_c, int n_c, double *matrix_f) {
 #	ifdef OPENMP
@@ -40,7 +42,6 @@ void prolongation( double *matrix_c, int n_c, double *matrix_f) {
 #	endif	
 
 	int n_f = 2*n_c-1;
-	int i_c, j_c, i_f, j_f;
 #	ifdef GPU
 	double (*d_matrix_f),(*d_matrix_c);
         cudaMalloc( &d_matrix_f, n_f*n_f*sizeof(double));
@@ -51,16 +52,12 @@ void prolongation( double *matrix_c, int n_c, double *matrix_f) {
         cudaFree(d_matrix_f);
         cudaFree(d_matrix_c);
         printf("Using gpu prolongate.\n");
-	print(matrix_f,n_f);
-#	endif
-
-
-
-/*
+#	else
 //	Copy the points with factor 1 to the fine matrix
+	int i_c, j_c, i_f, j_f;
 #	ifdef OPENMP
 #	pragma omp parallel for collapse(2) private( i_c, j_c ) 
-#endif
+#	endif//ifdef OPENMP
 	for( i_f=0; i_f<n_f; i_f+=2 ) 
 	for( j_f=0; j_f<n_f; j_f+=2 ) {
 		i_c = i_f/2;
@@ -85,7 +82,7 @@ void prolongation( double *matrix_c, int n_c, double *matrix_f) {
 	for( j_f=0; j_f<n_f; j_f++ ) {
 		matrix_f[ind(i_f, j_f, n_f)] = ( matrix_f[ind(i_f+1, j_f, n_f)] + matrix_f[ind(i_f-1, j_f, n_f)] )/2;
 	}
-*/	
+#endif//#ifdef GPU #else
 #	ifdef DEBUG
 	t = omp_get_wtime()-t;
 	printf("[N_c = %4d -> N_f = %4d] Finish prolongation.(Duration = %.3f sec)\n", n_c, n_f, t);

@@ -50,7 +50,6 @@ void restriction( double *matrix_f, int n_f, double *matrix_c ) {
 	tr = omp_get_wtime();
 #	endif
 	int n_c = (n_f+1)/2;
-	int i_c, j_c, i_f, j_f;
 	
 #	ifdef GPU
 	double (*d_matrix_f),(*d_matrix_c);
@@ -62,12 +61,13 @@ void restriction( double *matrix_f, int n_f, double *matrix_c ) {
 	cudaFree(d_matrix_f);
 	cudaFree(d_matrix_c);
 	printf("Using gpu restrict.\n");
-#	endif
-	
+#	else
+	int i_c, j_c, i_f, j_f;
 //	Interior points
 #	ifdef OPENMP
+	printf("Using openmp restrict\n");
 #	pragma omp parallel for collapse( 2 ) private( i_f, j_f )
-//#	endif
+#	endif
 	for( i_c=1; i_c<n_c; i_c++ )
 	for( j_c=1; j_c<n_c; j_c++ ) {
 		i_f = 2*i_c;
@@ -91,14 +91,13 @@ void restriction( double *matrix_f, int n_f, double *matrix_c ) {
 				                 + matrix_f[ind(i_f, j_f-1, n_f)] )/8;
 #		endif
 	}
-	printf("using openmp\n");
-#endif
+#	endif//#ifdef GPU #else
 //	Boundary points
 #	ifdef OPENMP
 #	pragma omp parallel for private( i_f )
 #	endif
-	for(i_c=0; i_c<n_c; i_c++  ) {
-		i_f = i_c*2;
+	for(int i_c=0; i_c<n_c; i_c++  ) {
+		int i_f = i_c*2;
 //	Up & down boundaries
 		matrix_c[ind(i_c, 0, n_c)]     = matrix_f[ind(i_f, 0, n_f)];
 		matrix_c[ind(i_c, n_c-1, n_c)] = matrix_f[ind(i_f, n_f-1, n_f)];

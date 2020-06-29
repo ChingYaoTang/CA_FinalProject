@@ -9,8 +9,8 @@
 #define TEST2         //Set the initial problem
 
 #define GPU
-#define BLOCK_SIZE	11
-#define GRID_SIZE	11
+#define BLOCK_SIZE	65
+#define GRID_SIZE	65
 
 int ind( int i, int j, int n);
 void print( double *matric, int n);
