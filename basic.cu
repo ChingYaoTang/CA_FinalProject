@@ -72,15 +72,15 @@ void fill_zero( double *phi_guess, int n  ) {
 }
 
 
-void test_prol_rest( const int N ,double *phi_corr_2h) {
+void test_prol_rest( const int N ,double *phi_corr_h_) {
 	printf( "test restriction\n" );
-	double *phi_corr_h_ = (double *)malloc( N * N * sizeof(double) );
+	/*double *phi_corr_h_ = (double *)malloc( N * N * sizeof(double) );
 	for( int i=0; i<N; i++) {
 		for( int j=0; j<N; j++) {
 			if( i==0 || j==0 || i==N-1 || j==N-1) phi_corr_h_[ind( i, j, N )] = 0.0;
 			else phi_corr_h_[ind( i, j, N )] = 1.0;
 		}
-	}
+	}*/
 	printf( "phi_corr_h\n" );
 	print( phi_corr_h_, N );
 	double *phi_corr_2h_ = (double *)malloc( (N+1)/2 * (N+1)/2 * sizeof(double) );
