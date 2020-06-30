@@ -17,7 +17,7 @@
 
 //	Set the basic parameters
 const float  L                = 1; 	    	 // Boxsize in the solver
-const int    N                = 129;              // Number of the resolution
+const int    N                = 2049;              // Number of the resolution
 const double dx               = L/(N-1);	 // Spatial interval 
 const int    cycle_type       = 2;		 // 1:two grid, 2:V cycle, 3:W cycle, 4:W cycle, 5:SOR, 6:FMG
 const int    cycle_num        = 1;	 	 // Number of cylces
@@ -57,8 +57,10 @@ int main( int argc, char *argv[] ) {
 //	Start Reckoning the time
 //	double t;	
 //	t = omp_get_wtime();
-
-#ifdef PARALLEL_GPU
+//	relaxation( potential, density, N, conv_loop, 1, 0 );
+//	test_prol_rest( 11, analytic );
+	
+#ifdef GPU
 	printf("Using GPU.\n");
 #else
 	printf("Not using GPU.\n");

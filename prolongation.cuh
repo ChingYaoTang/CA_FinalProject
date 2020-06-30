@@ -6,5 +6,7 @@
 #define PROLONGATION_H
 
 void prolongation( double *matrix_c, int n_c, double *matrix_f );
+__global__
+void prolongation_gpu( double (*matrix_c), int n_c, double (*matrix_f) );
 
 #endif

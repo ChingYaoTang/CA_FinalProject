@@ -19,7 +19,7 @@ void print( double *matrix, int n) {
     for( int i=0; i<n; i++ ) {
         for( int j=0; j<n; j++ ) {
             int index = i*n + j;
-                printf("%.3e\t", matrix[index]);
+                printf("%.3f\t", matrix[index]);
         }
     printf("\n");
     }
@@ -73,7 +73,7 @@ void fill_zero( double *phi_guess, int n  ) {
 
 
 void test_prol_rest( const int N ,double *phi) {
-	printf( "test restriction\n" );
+	/*printf( "test restriction\n" );
 	double *phi_corr_h_ = (double *)malloc( N * N * sizeof(double) );
 	for( int i=0; i<N; i++) {
 		for( int j=0; j<N; j++) {
@@ -89,23 +89,23 @@ void test_prol_rest( const int N ,double *phi) {
 	print( phi_corr_2h_, (N+1)/2 );
 	//free(phi_corr_h_);
 	free(phi_corr_2h_);
-
+*/
 	printf( "test prolongation\n");
-	double *phi_corr_2h = (double *)malloc( (N+1)/2 * (N+1)/2 * sizeof(double) );
+	/*double *phi_corr_2h = (double *)malloc( (N+1)/2 * (N+1)/2 * sizeof(double) );
 	for( int i=0; i<(N+1)/2; i++) {
 		for( int j=0; j<(N+1)/2; j++) {
 			if( i==0 || j==0 || i==(N+1)/2-1 || j==(N+1)/2-1) phi_corr_2h[ind( i, j, (N+1)/2 )] = 0.0;
 			else phi_corr_2h[ind( i, j, (N+1)/2 )] = 1.0;
 		}
-	}
+	}*/
 //      Prolongate the phi_corr_2h to phi_corr_h
 	double *phi_corr_h = (double *)malloc( N * N * sizeof(double) );
 	printf( "phi_corr_2h\n" );
-	print( phi_corr_h_, N );
-	prolongation( phi_corr_h_, N, phi_corr_h );
+	print( phi, (N+1)/2 );
+	prolongation( phi, (N+1)/2, phi_corr_h );
 	printf( "phi_corr_h after prolongation\n" );
-	print( phi_corr_h, N*2-1 );
+	print( phi_corr_h, N );
 	free(phi_corr_h);
-	free(phi_corr_h_);
+	free(phi);
 
 }

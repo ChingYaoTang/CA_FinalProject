@@ -1,5 +1,5 @@
 TARGET	= MG_solver
-CC	= g++  -fopenmp
+CC	= g++ -fopenmp
 CFLAGS	= -o
 NVCC	= nvcc
 OBJ	= main.o init.o basic.o prolongation.o restriction.o cal_residual.o relaxation.o relative_error.o exact_im.o up_down.o
