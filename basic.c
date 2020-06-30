@@ -5,6 +5,9 @@
 #include "prolongation.h"
 #include "restriction.h"
 #include "basic.h"
+#include <omp.h>
+
+extern const int   NThread;
 
 
 //	1D index of the matrix element
@@ -30,6 +33,7 @@ void add_correction( double *phi_old, double *phi_corr, int n  ) {
 	int i, j;
 
 #	ifdef OPENMP
+	omp_set_num_threads( NThread );
 #	pragma omp parallel for collapse(2) private( i,j )
 #	endif
 	for( i=0; i<n; i++)
@@ -49,6 +53,7 @@ void fill_zero( double *phi_guess, int n  ) {
 	int i, j;
 
 #	ifdef OPENMP
+	omp_set_num_threads( NThread );
 #	pragma omp parallel for collapse(2) private( i,j )
 #	endif
 	for( i=1; i<n-1; i++)
@@ -62,6 +67,7 @@ void fill_zero( double *phi_guess, int n  ) {
 #	endif
 	for( int i=0; i<n; i++ ) {
 		phi_guess[ind(i, 0, n)] = phi_guess[ind(i, n-1, n)] = phi_guess[ind(0, i, n)] = phi_guess[ind(n-1, i, n)] = 0.0;
+//		printf("Using openmp with number of threads = %d\n", omp_get_num_threads());
 	}
 
 #	ifdef DEBUG

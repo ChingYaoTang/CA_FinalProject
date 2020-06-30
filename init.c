@@ -14,7 +14,7 @@ void init_sin( double *analytic, double *potential, double *density, const doubl
 			analytic[ind( i, j, N )] = sin( kx*i*dx ) * sin( ky*j*dx ) + bc;
 			density[ind( i, j, N )]  = -( pow(kx,2) + pow(ky,2) ) * ( analytic[ind( i, j, N )] - bc );
 			if( i==0 || j==0 || i==(N-1) || j==(N-1)) potential[ind( i, j, N )] = bc;
-			else potential[ind( i, j, N )] = bc;
+			else potential[ind( i, j, N )] = 1e-10;
 		}
 	}
 	printf("Using sin test problem, N=%d\n",N);

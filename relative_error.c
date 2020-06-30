@@ -3,14 +3,17 @@
 #include <cstring>
 #include <math.h>
 #include "basic.h"
+#include <omp.h>
 
 extern const int N;
+extern const int   NThread;
 
 // arguments: (1)experimental value, (2)theoretical value, (3)matrix size
 
 void relative_error( double *expe, double *theo, int n, double *error ) {
 	double sum = 0;
 #	ifdef OPENMP
+	omp_set_num_threads( NThread );
 #	pragma omp parallel for collapse(2) reduction( +:sum )	
 #	endif
 	for( int i=1; i<n-1; i++ )

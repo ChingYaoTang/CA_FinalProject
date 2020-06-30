@@ -10,6 +10,7 @@ extern double final_conv_rate;
 extern const int N;
 extern const float L;
 extern const bool sor_method; 
+extern const int   NThread;
 
 
 // arguments: (1)phi matirx, (2)rho matrix, (3)size of the matrix,(4)convergence criterion, 
@@ -68,7 +69,8 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 //	       		copy old potential
 			memcpy( phi_old, phi_guess, n*n*sizeof(double) );
 
-#ifdef PARALLEL_SECTION
+#			ifdef PARALLEL_SECTION
+			omp_set_num_threads( NThread );
 //      	        update odd part
 			omp_set_nested(1);
 #			pragma omp parallel num_threads(2)
@@ -141,11 +143,12 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 
 			}
 			}
-#endif
+#			endif
 
 
-#ifdef PARALLEL_FOR
-#pragma omp parallel for
+#			ifdef PARALLEL_FOR
+			omp_set_num_threads( NThread );
+#			pragma omp parallel for
 //			update odd part
 			for( int i=1; i<(n-1); i++ )
  			for( int j=( i%2 + (i+1)%2*2 ); j<(n-1); j+=2 ) {
@@ -156,7 +159,7 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
  							             - phi_guess[ind(i, j, n)]*4
  						        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
  			}
-#pragma omp parallel for
+#			pragma omp parallel for
 //			update even part
  			for( int i=1; i<(n-1); i++ )
  			for( int j=( (i+1)%2 + i%2*2 ); j<(n-1); j+=2 ) {
@@ -167,10 +170,10 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
  							             - phi_guess[ind(i, j, n)]*4
  						        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
  			}	
-#endif
+#			endif
 
 
-#ifdef WO_OMP
+#			ifdef WO_OMP
 //			update odd part
 			for( int i=1; i<(n-1); i++ )
  			for( int j=( i%2 + (i+1)%2*2 ); j<(n-1); j+=2 ) {
@@ -191,7 +194,7 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
  							             - phi_guess[ind(i, j, n)]*4
  						        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
  			}	
-#endif
+#			endif
 
 			relative_error( phi_guess, phi_old, n, error );
 		}

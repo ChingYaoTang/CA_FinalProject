@@ -5,6 +5,7 @@
 #include "basic.h"
 #include <omp.h>
 
+extern const int   NThread;
 // Input the coarse gird matrix and calculate the corresponding fine grid matrix by bilinear operator
 
 // arguments: (1)coarse matrix, (2)matrix size of fine matrix, (3)fine matrix
@@ -20,6 +21,7 @@ void prolongation( double *matrix_c, int n_c, double *matrix_f) {
 
 //	Copy the points with factor 1 to the fine matrix
 #	ifdef OPENMP
+	omp_set_num_threads( NThread );
 #	pragma omp parallel for collapse(2) private( i_c, j_c ) 
 #	endif
 	for( i_f=0; i_f<n_f; i_f+=2 ) 
@@ -47,6 +49,7 @@ void prolongation( double *matrix_c, int n_c, double *matrix_f) {
 	for( i_f=1; i_f<n_f-1; i_f+=2 )
 	for( j_f=0; j_f<n_f; j_f++ ) {
 		matrix_f[ind(i_f, j_f, n_f)] = ( matrix_f[ind(i_f+1, j_f, n_f)] + matrix_f[ind(i_f-1, j_f, n_f)] )/2;
+//		printf("Using openmp with number of threads = %d\n", omp_get_num_threads());
 	}
 	
 #	ifdef DEBUG

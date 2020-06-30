@@ -5,6 +5,7 @@
 #include "basic.h"
 #include <omp.h>
 
+extern const int   NThread;
 // Input the fine gird matrix and calculate the corresponding coarse grid matrix by full weighting operator
 
 // arguments: (1)fine matrix, (2)matrix size of fine matrix, (3)coarse matrix
@@ -19,6 +20,7 @@ void restriction( double *matrix_f, int n_f, double *matrix_c ) {
 	
 //	Interior points
 #	ifdef OPENMP
+	omp_set_num_threads( NThread );
 #	pragma omp parallel for collapse( 2 ) private( i_f, j_f )
 #	endif
 	for( i_c=1; i_c<n_c; i_c++ )
@@ -58,6 +60,7 @@ void restriction( double *matrix_f, int n_f, double *matrix_c ) {
 //	Left & right boundaries
 		matrix_c[ind(0, i_c, n_c)]     = matrix_f[ind(0, i_f, n_f)];
 		matrix_c[ind(n_c-1, i_c, n_c)] = matrix_f[ind(n_f-1, i_f, n_f)];
+//		printf("Using openmp with number of threads = %d\n", omp_get_num_threads());
 	}
 
 #	ifdef DEBUG

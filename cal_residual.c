@@ -3,8 +3,10 @@
 #include <cstring>
 #include <math.h>
 #include "basic.h"
+#include <omp.h>
 
 extern const float L;
+extern const int   NThread;
 
 // input matrices and their size, calculate residual by exact L
 // res = L*phi_guess "-" rho.
@@ -20,6 +22,7 @@ void cal_residual( double *phi_guess, double *rho, double *residual, int n, bool
 //      calculate interior points
 //      0 for original Poisson equation, 1 for residual equation
 #	ifdef OPENMP
+	omp_set_num_threads( NThread );
 #	pragma omp parallel for collapse(2)
 #	endif
 	for( int i=1; i<n-1; i++ )
@@ -38,6 +41,7 @@ void cal_residual( double *phi_guess, double *rho, double *residual, int n, bool
 #	endif
 	for( int i=0; i<n; i++ ) {
 		residual[ind(i, 0, n)] = residual[ind(i, n-1, n)] = residual[ind(0, i, n)] = residual[ind(n-1, i, n)] = 0.0;
+//		printf("Using openmp with number of threads = %d\n", omp_get_num_threads());
 	}
 
 #	ifdef DEBUG

@@ -18,17 +18,18 @@
 
 //	Set the basic parameters
 const float  L                = 1; 	    	// Boxsize in the solver
-const int    N                = 65;		// Number of the resolution
+const int    N                = 129;		// Number of the resolution
 const double dx               = L/(N-1);	// Spatial interval 
 const int    cycle_type       = 2;		// 1:two grid, 2:V cycle, 3:F cycle, 4:W cycle, 5:SOR, 6:FMG
-const int    cycle_num        = 10;	 	// Number of cylces
-const int    final_level      = 4;		// Final level of V cycle or W cycle
+const int    cycle_num        = 100;	 	// Number of cylces
+const int    final_level      = 3;		// Final level of V cycle or W cycle
 const bool   sor_method       = 0;		// 0:even-odd, 1:normal
 const float  omega_sor        = 1;		// Omgega of SOR method (1= G-S method)
 cal_fn       exact_solver     = relaxation;	// Function name of the exact solver
 const int    ncycle_FMG	      = 2;		// Number of V cycle to be used in FMG
 double	     final_conv_rate  = 1;		// Variable for storing the conv_error in relaxation at finest level
 double	     break_criterion  = 1e-12;		// Criterion of conv_error in relaxation at finest level, which breaks the loop of cycle_num
+const int    NThread	      = 4;
 
 //main function
 int main( int argc, char *argv[] ) {
@@ -47,8 +48,8 @@ int main( int argc, char *argv[] ) {
 //	Initialize the Poisson solver problem
 #	ifdef SINTEST
 	const double bc         = 0.0;        // Boundary condition
-	const double kx         = PI/L;
-	const double ky         = PI/L;
+	const double kx         = 1*PI/L;
+	const double ky         = 1*PI/L;
 	init_sin( analytic, potential, density, kx, ky, bc );
 #	endif
 #	ifdef TEST2
@@ -349,7 +350,11 @@ int main( int argc, char *argv[] ) {
 		printf("Conv_precision  = %e\n", *conv_precision);	
 	}
 #	ifdef OPENMP
-	printf("Using openmp\n");
+	omp_set_num_threads( NThread );
+#	pragma omp parallel 
+	{	
+	printf("Using openmp with number of threads = %d\n", omp_get_num_threads());
+	}
 #	endif
 
 	free(conv_loop);
