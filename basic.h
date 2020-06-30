@@ -13,12 +13,12 @@
 //#define PARALLEL_FOR
 //#define WO_OMP
 #define PARALLEL_GPU  
-
+//
 
 #define FULL_WEIGHTING// Set method of restriction
 #define TEST2         //Set the initial problem
 
-//#define NORMAL
+#define NORMAL
 
 int ind( int i, int j, int n);
 void print( double *matric, int n);
