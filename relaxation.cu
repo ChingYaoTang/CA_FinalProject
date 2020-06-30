@@ -15,7 +15,7 @@ extern const bool sor_method;
 // 	      (7)which equation are we dealing with: 0 for Poisson eq., 1 for residual eq. 
 
 __global__
-void relaxation_gpu_odd( double (*phi_guess), double (*rho), int n, double omega, bool w, double h ){
+void relaxation_gpu_odd( double (*phi_guess), double (*rho), int n, double omega, bool w, double h, double *error ){
 	int job = n/BLOCK_SIZE+1;
 
 	for( int a=0;a<job;a++ )
@@ -28,14 +28,14 @@ void relaxation_gpu_odd( double (*phi_guess), double (*rho), int n, double omega
 		 double r = omega/4 * ( phi_guess[(i+1)*n+j]+ phi_guess[(i-1)*n+j]
 				 		 +phi_guess[i*n+(j+1)]+ phi_guess[i*n+(j-1)]-phi_guess[i*n+j]*4\\
 						 -rho[i*n+j]*pow(h,2)*pow(-1,w));
-		 //error[i*n+j]     = fabs(r/(phi_guess[i*n+j]*pow(n,2)));
+		 error[i*n+j]     = fabs(r/phi_guess[i*n+j]);
 		 phi_guess[i*n+j] += r;
 		}
 		}
 	}
 }
 __global__
-void relaxation_gpu_even( double (*phi_guess), double (*rho), int n, double omega, bool w, double h ){
+void relaxation_gpu_even( double (*phi_guess), double (*rho), int n, double omega, bool w, double h, double *error){
         int job = n/BLOCK_SIZE+1;
 
         for( int a=0;a<job;a++ )
@@ -48,7 +48,7 @@ void relaxation_gpu_even( double (*phi_guess), double (*rho), int n, double omeg
                  double r = omega/4 * ( phi_guess[(i+1)*n+j]+ phi_guess[(i-1)*n+j]
                                                  +phi_guess[i*n+(j+1)]+ phi_guess[i*n+(j-1)]-phi_guess[i*n+j]*4\\
                                                  -rho[i*n+j]*pow(h,2)*pow(-1,w));
-                 //error[i*n+j]     = fabs(r/(phi_guess[i*n+j]*pow(n,2)));
+                 error[i*n+j]     = fabs(r/phi_guess[i*n+j]);
                  phi_guess[i*n+j] += r;
                 }
                 }
@@ -89,7 +89,8 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 	*itera = 0;
 	double *error = (double *)malloc( sizeof(double) );
 	*error = 1;
-
+	double *error_tot;
+	double test;
 //	Store the primitive input to make the comparison with the up-to-date result
 	double *phi_old = (double *)malloc( n*n*sizeof(double) );
 
@@ -123,83 +124,97 @@ void relaxation( double *phi_guess, double *rho, int n, double *conv_criterion, 
 			}
 		}
 	} else if( sor_method==0 ) {
+                error_tot = (double *)malloc(n*n*sizeof(double));
 #ifdef PARALLEL_GPU
-		double (*d_phi), (*d_rho);//, (*d_error), (*d_result), (*d_phi_old);
+		double (*d_phi), (*d_rho), (*d_error);// (*d_result), (*d_phi_old);
 #endif
 		while( *condition1 > *condition2 ) {
 			*itera += 1;
 			*error = 0;
+			test = 0;
 //	       		copy old potential
 			memcpy( phi_old, phi_guess, n*n*sizeof(double) );
 #ifdef PARALLEL_GPU
-			double *error_tot;
-			error_tot = (double *)malloc(n*n*sizeof(double));
 			cudaMalloc( &d_phi, n*n*sizeof(double));
 			//cudaMalloc( &d_phi_old, n*n*sizeof(double));
 			cudaMalloc( &d_rho, n*n*sizeof(double));
-			//cudaMalloc( &d_error, n*n*sizeof(double));
+			cudaMalloc( &d_error, n*n*sizeof(double));
 			//cudaMalloc( &d_result, sizeof(double));
 			//cudaMemcpy( d_phi_old, phi_guess, n*n*sizeof(double), cudaMemcpyHostToDevice );
 			cudaMemcpy( d_phi, phi_guess, n*n*sizeof(double), cudaMemcpyHostToDevice );
 			cudaMemcpy( d_rho, rho, n*n*sizeof(double), cudaMemcpyHostToDevice );
-			relaxation_gpu_odd <<< BLOCK_SIZE,GRID_SIZE >>> ( d_phi, d_rho, n, omega, w, h);// d_error);
-			relaxation_gpu_even <<< BLOCK_SIZE,GRID_SIZE >>> ( d_phi, d_rho, n, omega, w, h);// d_error);
+			relaxation_gpu_odd <<< BLOCK_SIZE,GRID_SIZE >>> ( d_phi, d_rho, n, omega, w, h, d_error);
+			relaxation_gpu_even <<< BLOCK_SIZE,GRID_SIZE >>> ( d_phi, d_rho, n, omega, w, h, d_error);
 		//	relative_error_gpu <<<n,n>>> (d_phi,d_phi_old,n,d_error);
 		//	compute_error	<<<1,n>>> ( d_error, n, d_result);
 		//	cudaMemcpy( error, d_result, sizeof(double), cudaMemcpyDeviceToHost );
 			cudaMemcpy( phi_guess, d_phi, n*n*sizeof(double), cudaMemcpyDeviceToHost );
-		//	cudaMemcpy( error_tot, d_error, n*n*sizeof(double), cudaMemcpyDeviceToHost );
-		/*	for( int i=1;i<(n-1);i++ )
+			cudaMemcpy( error_tot, d_error, n*n*sizeof(double), cudaMemcpyDeviceToHost );
+			//printf("itera:%.3f\n",*itera);
+			//print(error_tot,n);
+			//printf("====================\n");
+			//print(phi_guess,n);
+			for( int i=1;i<(n-1);i++ )
 			for( int j=1;j<(n-1);j++ ){
-				*error+=error_tot[i*n+j]/pow(n,2);//(phi_guess[i*n+j]-phi_old[i*n+j])/phi_old[i*n+j]/(n*n);
-			}*/
+				test+=error_tot[i*n+j]/pow(n,2);//(phi_guess[i*n+j]-phi_old[i*n+j])/phi_old[i*n+j]/(n*n);
+			}
 			cudaFree(d_phi);
-	                //cudaFree(d_error);
+	                cudaFree(d_error);
         	        cudaFree(d_rho);
 		//	printf("Using GPU.\n");
 #endif
 
 #ifdef WO_OMP
 		//	printf("Not Using GPU.\n");
-			
 //			update odd part
 			for( int i=1; i<(n-1); i++ )
  			for( int j=( i%2 + (i+1)%2*2 ); j<(n-1); j+=2 ) {
- 				phi_guess[ind(i, j, n)] += omega/4 * ( phi_guess[ind(i+1, j, n)]
+ 				double r = omega/4 * ( phi_guess[ind(i+1, j, n)]
  				    			             + phi_guess[ind(i-1, j, n)]
  							             + phi_guess[ind(i, j+1, n)]
  							             + phi_guess[ind(i, j-1, n)]
  							             - phi_guess[ind(i, j, n)]*4
  						        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
+				error_tot[i*n+j] = fabs(r/phi_guess[i*n+j]);
+				phi_guess[i*n+j] += r;
  			}
 //			update even part
  			for( int i=1; i<(n-1); i++ )
  			for( int j=( (i+1)%2 + i%2*2 ); j<(n-1); j+=2 ) {
- 				phi_guess[ind(i, j, n)] += omega/4 * ( phi_guess[ind(i+1, j, n)]
- 				    			             + phi_guess[ind(i-1, j, n)]
- 							             + phi_guess[ind(i, j+1, n)]
- 							             + phi_guess[ind(i, j-1, n)]
- 							             - phi_guess[ind(i, j, n)]*4
- 						        	     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
- 			}
-#endif
-			relative_error( phi_guess, phi_old, n, error );
+ 				double r = omega/4 * ( phi_guess[ind(i+1, j, n)]
+                                                                     + phi_guess[ind(i-1, j, n)]
+                                                                     + phi_guess[ind(i, j+1, n)]
+                                                                     + phi_guess[ind(i, j-1, n)]
+                                                                     - phi_guess[ind(i, j, n)]*4
+                                                                     - rho[ind(i, j, n)] * pow(h,2) * pow(-1,w) );
+                                error_tot[i*n+j] = fabs(r/phi_guess[i*n+j]);
+                                phi_guess[i*n+j] += r;
+			}
 //#endif
+			//relative_error( phi_guess, phi_old, n, error );
+			for( int i=1;i<(n-1);i++ )
+			for( int j=1;j<(n-1);j++ ){
+                                *error+=error_tot[i*n+j]/pow(n,2);//(phi_guess[i*n+j]-phi_old[i*n+j])/phi_old[i*n+j]/(n*n);
+                        }
+
+#endif
 		}//end of while
-#ifdef PARALLE_GPU
+//#ifdef PARALLE_GPU
+//		relative_error( phi_guess, phi_old, n, error);
 //		cudaMemcpy( phi_guess, d_phi_old, n*n*sizeof(double), cudaMemcpyDeviceToHost );
 //		cudaFree(d_phi_old);
  //       	cudaFree(d_error);
 //		cudaFree(d_rho);
-#endif
+//#endif
 	}
-#ifdef DEBUG	
-
+#ifdef DEBUG
 	tr = omp_get_wtime()-tr;
 	
 #endif
+	printf("==================\n");
+	print(error_tot,n);
 	if( *conv_criterion>1.0 ) {
-		printf( "[N = %4d                ] Finish relaxation. Total iteration = %g, final conv error = %e \n", n, *itera, *error);
+		printf( "[N = %4d                ] Finish relaxation. Total iteration = %g, final conv error = %e \n", n, *itera, test);//*error);
 	} else {
 		printf("Exact solver by relaxation terminated. Total iteration = %g, final conv error = %e\n", *itera, *error);
 #ifdef DEBUG
